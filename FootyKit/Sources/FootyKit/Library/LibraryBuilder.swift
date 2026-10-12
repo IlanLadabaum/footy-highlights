@@ -93,13 +93,13 @@ public struct LibraryBuilder: Sendable {
             let entries = roundFixtures.sorted { ($0.utcDate, $0.id) < ($1.utcDate, $1.id) }.map { fixture in
                 fixtureEntry(fixture, roundId: roundId, roundName: name, context: context)
             }
-            let dates = roundFixtures.map(\.utcDate)
+            let cluster = Self.mainCluster(roundFixtures.map(\.utcDate))
             let leagueStage = roundFixtures.allSatisfy { !$0.isKnockout }
             rounds.append(
                 Round(
-                    id: roundId, name: name, start: dates.min()!, end: dates.max()!, matches: entries,
+                    id: roundId, name: name, start: cluster.lowerBound, end: cluster.upperBound, matches: entries,
                     layout: leagueStage && !competition.cup ? .withTable : .fullWidth,
-                    earliestKickoff: dates.min()))
+                    earliestKickoff: cluster.lowerBound))
         }
 
         // Videos that couldn't be matched still show (teams from the title, no round in the name).
@@ -173,7 +173,9 @@ public struct LibraryBuilder: Sendable {
                     && $0.away.id == fixture.home.id
             })
         else { return nil }
-        return FirstLegInfo(fixture: first, flags: flags[.fixture(first.id)] ?? MatchFlags())
+        return FirstLegInfo(
+            fixture: first, homeName: names.displayName(for: first.home), awayName: names.displayName(for: first.away),
+            flags: flags[.fixture(first.id)] ?? MatchFlags())
     }
 
     private func bestRoundIndex(for date: Date, in rounds: [Round]) -> Int? {
@@ -252,6 +254,16 @@ public struct LibraryBuilder: Sendable {
     }
 
     // MARK: - Helpers
+
+    /// The dates where most of a round is played: within 4 days of the median kickoff. Matches brought
+    /// forward or postponed by weeks are left out, so ordering and the "before the round" cut-off follow
+    /// the real round (e.g. a matchweek with one game moved to February and one to May).
+    static func mainCluster(_ dates: [Date]) -> ClosedRange<Date> {
+        let sorted = dates.sorted()
+        let median = sorted[sorted.count / 2]
+        let inCluster = sorted.filter { abs($0.timeIntervalSince(median)) <= 4 * 86_400 }
+        return inCluster.first!...inCluster.last!
+    }
 
     /// One entry per match: collapse uploads of the same pairing within 4 days, keeping the preferred version.
     private func dedupe(_ items: [(Video, ParsedTitle)]) -> [(Video, ParsedTitle)] {

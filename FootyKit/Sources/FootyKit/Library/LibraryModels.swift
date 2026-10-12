@@ -58,6 +58,8 @@ public struct MatchEntry: Identifiable, Hashable, Sendable {
 
 public struct FirstLegInfo: Hashable, Sendable {
     public var fixture: Fixture
+    public var homeName: String
+    public var awayName: String
     public var flags: MatchFlags
     /// Shown automatically once the first leg is watched or revealed.
     public var scoreVisible: Bool { (flags.watched || flags.revealed) && fixture.score != nil }
@@ -79,7 +81,8 @@ public struct Round: Identifiable, Hashable, Sendable {
     public var end: Date
     public var matches: [MatchEntry]
     public var layout: RoundLayout
-    /// Fixture-based rounds: kickoff of the earliest match (the "before the round" cut-off for the table).
+    /// Fixture-based rounds: the earliest kickoff of the round's main block of dates (the "before the round"
+    /// cut-off for the table). A match brought forward weeks earlier counts as already played.
     public var earliestKickoff: Date?
 
     public var unwatchedCount: Int { matches.filter(\.isUnwatched).count }

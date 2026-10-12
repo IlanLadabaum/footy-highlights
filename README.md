@@ -42,23 +42,19 @@ Restricting the key means that if it leaks, it can't be used for anything else.
 
 ### 5. Add the key to the app
 
-In the project folder, copy the template and paste your key in:
+Open Footy Highlights. On first launch it asks for the key; later you can change it under **Footy Highlights → Settings… → API Keys** (⌘,). Keys are stored in your macOS Keychain, never in a file.
+
+**Developers** running a Debug build from Xcode can instead put keys in a git-ignored `.env` in the project folder (Debug builds read it before the Keychain):
 
 ```bash
 cp .env.example .env
 ```
 
-```bash
-open -e .env
-```
-
-Edit the file so it reads:
-
 ```
 YOUTUBE_API_KEY=AIza...your-key-here...
 ```
 
-`.env` is git-ignored, so the key stays on your machine and is never committed. **Don't put the key anywhere else** (source code, screenshots, issues).
+**Don't put the key anywhere else** (source code, screenshots, issues).
 
 ### Football data key (optional, recommended)
 
@@ -66,21 +62,17 @@ Footy Highlights uses [football-data.org](https://www.football-data.org) to matc
 
 1. Register at [football-data.org/client/register](https://www.football-data.org/client/register) (name + email, free tier).
 2. Your API token arrives by email. It's also shown on your account page.
-3. Add it to `.env`:
-
-```
-FOOTBALL_DATA_API_KEY=your-token-here
-```
+3. Paste it into **Settings → API Keys → football-data.org key** (or, for Debug builds, add `FOOTBALL_DATA_API_KEY=your-token-here` to `.env`).
 
 The free tier allows 10 requests per minute, far more than the app needs. Each user needs their own token; tokens aren't shared or bundled with the app.
 
 ### YouTube quota
 
-The free tier allows **10,000 quota units per day**. The app reads channel upload lists, which cost 1 unit per 50 videos, so normal use takes only a few dozen units a day. You can check usage under **APIs & Services → YouTube Data API v3 → Quotas** in the Cloud Console.
+The free tier allows **10,000 quota units per day**. The app reads channel upload lists, which cost 1 unit per 50 videos, so the first refresh of a season takes roughly 100–150 units and later refreshes only a few. You can check usage under **APIs & Services → YouTube Data API v3 → Quotas** in the Cloud Console.
 
 ### Troubleshooting
 
-- **`API key not valid`**: check for extra spaces or quotes around the key in `.env`.
+- **`API key not valid`**: re-paste the key in Settings (check for extra spaces or quotes if you use `.env`).
 - **`accessNotConfigured` / "API has not been used in project"**: the YouTube Data API v3 isn't enabled for the project the key belongs to (step 2). If you just enabled it, wait a few minutes.
 - **`quotaExceeded`**: the daily quota is used up. It resets at midnight Pacific Time.
 - **Videos won't play**: the highlight videos are restricted to the US.

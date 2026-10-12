@@ -48,6 +48,7 @@
 - Round screen fixtures column (watched checkbox, durations, "No highlights available", "Open on YouTube (may show score)", 1st-leg score rule).
 - Settings: keys with "get a key" links, hide-durations toggle, first-launch setup if there's no YouTube key.
 - Done when: the developer can browse every competition and mark things watched, with no player yet.
+- [BUILT] 2026-10-12: all four screens, undo, Settings window, first-launch setup. Verified with offscreen snapshots of last season's data (see `DEVIATIONS.md` D26).
 
 ### M3 — Player screen
 - WKWebView + IFrame API (`baseURL = https://<bundle-id>`), player created on Play, `controls=0`.

@@ -129,6 +129,16 @@ struct LibraryBuilderTests {
         #expect(library.competition("LALIGA")!.unwatchedCount == 0)
     }
 
+    @Test func roundWithMovedMatchesUsesItsMainDates() {
+        let fixtures = TestData.fixtures("PL", competitionId: "PL")
+        let library = builder.build(fixtures: fixtures, videos: [], flags: [:], now: TestData.date("2026-07-01T00:00:00Z"))
+        let rounds = library.competition("PL")!.rounds
+        #expect(rounds.map(\.name) == (1...38).reversed().map { "Matchweek \($0)" })
+        let mw31 = rounds.first { $0.name == "Matchweek 31" }!
+        #expect(mw31.matches.count == 10)
+        #expect(mw31.earliestKickoff! > TestData.date("2026-03-19T00:00:00Z"))
+    }
+
     @Test func prettyTitleRounds() {
         #expect(LibraryBuilder.prettyTitleRound("Round of 16 - Leg 1") == "Round of 16 · 1st leg")
         #expect(LibraryBuilder.prettyTitleRound("Knockout Play-offs - Leg 2") == "Knockout Play-offs · 2nd leg")
