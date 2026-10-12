@@ -23,7 +23,7 @@ struct ContentView: View {
             }
         }
         .task {
-            await model.refresh()
+            if AppModel.automaticRefresh { await model.refresh() }
         }
     }
 }

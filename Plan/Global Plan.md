@@ -61,4 +61,4 @@ A free, open-source app that collects official football match highlight videos a
 
 ## Spikes
 
-- `spikes/player/index.html`: throwaway YouTube IFrame API test (run with `.claude/launch.json` → `player-spike`). Delete it once the real player exists.
+- [BUILT] The player spike was deleted on 2026-10-12, once the real player existed (M3). It's still in git history (commit `fbe9473`).

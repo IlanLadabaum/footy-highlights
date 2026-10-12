@@ -12,12 +12,16 @@
 		1E4F10D142225BEBAD34288A /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8330FF61EAE366EEBCD8E88 /* SetupView.swift */; };
 		385563567BD01D6688EC9BF4 /* FootyHighlightsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81B3EE523B221F4CB6CC85E /* FootyHighlightsApp.swift */; };
 		39620FCF578EC1A91CF4AA36 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494B91846BF7506A2D50EF39 /* AppModel.swift */; };
+		3ABE16ED51AEE8746D88992D /* PlayerPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67EB784C1D7CFAE2D846F324 /* PlayerPage.swift */; };
 		440B7BD92022C8888B79FEFB /* MatchRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1576CF8AB4FC62796CDC153B /* MatchRow.swift */; };
 		4709C8AD905494C0293491BA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAE6DA0330CCDDD293C293B8 /* Assets.xcassets */; };
 		4C5CF9A308881CF228D2A514 /* TablePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 098A0FFE7E25A1DCD82E1182 /* TablePanel.swift */; };
 		50CCBCEDCEED971D8FD3A2DF /* RoundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BA01C8D6D3C6C732FE3F356 /* RoundView.swift */; };
+		647089E0184B5D46CF0B9BAE /* PlayerTestMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 737D40860C5D78779FD1E00C /* PlayerTestMode.swift */; };
 		6E7816F8C5455B1B76C89613 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56CC3D41F8413B0B8A31BBA /* SettingsView.swift */; };
+		706E5582E15103DEEAC5C3AE /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DF66F0C0E2791F42E29C60 /* PlayerView.swift */; };
 		71E526787D0F2B684DFB039A /* FootyKit in Frameworks */ = {isa = PBXBuildFile; productRef = F10AF55B8196CE32A7C1E9D3 /* FootyKit */; };
+		76E46F328BD8F56A35A3EF18 /* PlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30C95826BADE26F38795B68 /* PlayerController.swift */; };
 		9231E9144B2F3E1021417559 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502E8D10A37D23F09DCC3BB6 /* ContentView.swift */; };
 		B7EF094D0835F77C1062EFDA /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C9B6D1DD23E13A4578F0BEE /* Formatting.swift */; };
 		B8F55657189BC9D4C4DF765F /* SnapshotMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B00E7D9484D2B91D88C0206 /* SnapshotMode.swift */; };
@@ -51,13 +55,17 @@
 		494B91846BF7506A2D50EF39 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		4C83EA39860663F0E52A4567 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		502E8D10A37D23F09DCC3BB6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		67EB784C1D7CFAE2D846F324 /* PlayerPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerPage.swift; sourceTree = "<group>"; };
 		717F168B9C8ADBE391D25DE3 /* RoundsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundsView.swift; sourceTree = "<group>"; };
+		737D40860C5D78779FD1E00C /* PlayerTestMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTestMode.swift; sourceTree = "<group>"; };
 		77B18F9DD8B6C73E9E7D20D7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7B07EAE45E1C2D139C1B40ED /* PlayerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerScreen.swift; sourceTree = "<group>"; };
 		96967AAEBEB17DB21C6B5206 /* KeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyManager.swift; sourceTree = "<group>"; };
 		9C9B6D1DD23E13A4578F0BEE /* Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatting.swift; sourceTree = "<group>"; };
 		A56CC3D41F8413B0B8A31BBA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C30C95826BADE26F38795B68 /* PlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerController.swift; sourceTree = "<group>"; };
 		D1C4E05C59141287F87E036F /* FootyKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FootyKit; path = FootyKit; sourceTree = SOURCE_ROOT; };
+		D5DF66F0C0E2791F42E29C60 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		E0E2FCB38DFB8067C4BDB2C8 /* Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Route.swift; sourceTree = "<group>"; };
 		E81B3EE523B221F4CB6CC85E /* FootyHighlightsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FootyHighlightsApp.swift; sourceTree = "<group>"; };
 		E8330FF61EAE366EEBCD8E88 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
@@ -125,6 +133,7 @@
 		915920CD64C8464795B8DB2A /* Debug */ = {
 			isa = PBXGroup;
 			children = (
+				737D40860C5D78779FD1E00C /* PlayerTestMode.swift */,
 				3B00E7D9484D2B91D88C0206 /* SnapshotMode.swift */,
 			);
 			path = Debug;
@@ -167,7 +176,10 @@
 		E279191E0B7D76B00271D4BC /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				C30C95826BADE26F38795B68 /* PlayerController.swift */,
+				67EB784C1D7CFAE2D846F324 /* PlayerPage.swift */,
 				7B07EAE45E1C2D139C1B40ED /* PlayerScreen.swift */,
+				D5DF66F0C0E2791F42E29C60 /* PlayerView.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -308,7 +320,11 @@
 				E4ACA273B013CF6759EF3F2F /* KeyManager.swift in Sources */,
 				062529EA104FB025A78C6C14 /* LeagueTableView.swift in Sources */,
 				440B7BD92022C8888B79FEFB /* MatchRow.swift in Sources */,
+				76E46F328BD8F56A35A3EF18 /* PlayerController.swift in Sources */,
+				3ABE16ED51AEE8746D88992D /* PlayerPage.swift in Sources */,
 				F114E1B4B5E932C4173165A2 /* PlayerScreen.swift in Sources */,
+				647089E0184B5D46CF0B9BAE /* PlayerTestMode.swift in Sources */,
+				706E5582E15103DEEAC5C3AE /* PlayerView.swift in Sources */,
 				50CCBCEDCEED971D8FD3A2DF /* RoundView.swift in Sources */,
 				C04BE44CB00FE1CEA0DFAD3E /* RoundsView.swift in Sources */,
 				D681AC2E66C3783C052C4445 /* Route.swift in Sources */,

@@ -36,6 +36,15 @@
                 ("9-settings-advanced", AnyView(AdvancedSettings().frame(width: 560, height: 200))),
                 ("9-setup", AnyView(SetupView())),
             ]
+            let idle = PlayerController(videoId: "none")
+            let chrome = { (panel: AnyView) in
+                AnyView(VStack(spacing: 0) {
+                    ZStack { Color.black; panel }
+                    PlayerControls(controller: idle, hideDurations: false, isFullScreen: false, toggleFullScreen: {})
+                })
+            }
+            screens.append(("4-player-finished", chrome(AnyView(FinishedPanel(replay: {}, back: {})))))
+            screens.append(("4-player-error", chrome(AnyView(ErrorPanel(code: 150, video: nil, open: { _ in })))))
             for competition in library.competitions where !competition.rounds.isEmpty {
                 screens.append(("2-rounds-\(competition.id)", AnyView(NavigationStack { RoundsView(competitionId: competition.id) })))
                 screens.append(("3-round-\(competition.id)", AnyView(NavigationStack { RoundView(roundId: competition.rounds[0].id) })))

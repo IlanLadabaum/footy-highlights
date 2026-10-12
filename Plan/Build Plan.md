@@ -56,6 +56,7 @@
 - Destroy on end; errors 101/150/152/153 → message + YouTube fallback.
 - [DECIDED] **Watched works like email read status:** a video is marked watched **when it's opened**, and "Mark watched" / "Mark unwatched" buttons are always available. *(user, 2026-10-11)*
 - Done when: highlights from all v1 channels play correctly on the developer's Mac, re-checked against the spike's spoiler surfaces.
+- [BUILT] 2026-10-12: player built. Headless check: all five in-app channels play, pause/resume, destroy on end; LALIGA error 150 handled. **The spoiler-surface re-check still needs the developer** (it needs a human watching real playback).
 
 ### M4 — League table
 - Pre-round standings on the round screen; greyed "add key" panel without a key.

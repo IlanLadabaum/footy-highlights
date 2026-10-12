@@ -34,7 +34,6 @@ Build agents: the approved v1 milestones are in [`Plan/Build Plan.md`](Plan/Buil
 ├── FootyHighlightsTests/      # App-level tests
 ├── FootyKit/                  # Swift package: data layer + footy-cli + unit tests
 ├── DEVIATIONS.md              # Agent decisions/deviations awaiting the developer's review
-├── spikes/                    # Throwaway experiments (not app code)
 ├── LICENSE                    # MIT
 ├── .env                       # Secrets (git-ignored) — YOUTUBE_API_KEY, FOOTBALL_DATA_API_KEY
 ├── .env.example               # Template for .env (committed)
@@ -62,6 +61,7 @@ While testing against live data you will see real scores and results. **Never pu
 - **Build + test the app:** `xcodebuild -project FootyHighlights.xcodeproj -scheme FootyHighlights -destination 'platform=macOS' -derivedDataPath build/DerivedData test`
 - **Test the data layer (fast):** `swift test --package-path FootyKit`
 - **Live-data check:** `swift run --package-path FootyKit footy-cli` (reads `.env`; prints counts only, never titles or scores).
+- **Debug tools (Debug builds only):** `"build/DerivedData/Build/Products/Debug/Footy Highlights.app/Contents/MacOS/Footy Highlights" --snapshot <dir> --seed FootyKit/Tests/FootyKitTests/Fixtures` renders the screens to PNGs from last season's data (no live spoilers, no screen-recording permission needed). `--player-test` plays one highlight per channel **muted** offscreen and prints player states only. Never screenshot a playing video: the broadcast graphics show the score.
 - **Lint / format:** `swiftlint lint` and `xcrun swift-format lint -r FootyHighlights FootyKit/Sources FootyKit/Tests` (format in place with `xcrun swift-format format -i -r …`). Configs: `.swiftlint.yml`, `.swift-format`.
 - **Style:** Swift 6 language mode; 4-space indent; 120-col lines. Keep views thin and logic in FootyKit. Pure value types for domain logic; SwiftData only in the store layer.
 - **Test fixtures** with real titles come from past seasons (or are synthetic) so they carry no current-season spoilers.

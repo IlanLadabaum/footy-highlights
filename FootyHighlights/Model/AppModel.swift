@@ -12,6 +12,9 @@ final class AppModel {
     private let builder: LibraryBuilder
     private let keyManager = KeyManager()
 
+    /// Off in the developer snapshot/test modes, so the main window doesn't refresh alongside them.
+    static var automaticRefresh = true
+
     private(set) var library = Library.empty
     private(set) var keys = APIKeys(youTube: nil, footballData: nil)
     private(set) var keySources: [APIKeyKind: KeySource] = [:]

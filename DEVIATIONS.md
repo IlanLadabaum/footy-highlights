@@ -43,3 +43,13 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D25. Window minimum 900×600.** Settings is the standard macOS Settings window (⌘,) with "API Keys" and "Advanced" tabs; first launch without a YouTube key shows a setup screen in the main window.
 - **D26. Developer snapshot mode (Debug only):** `"Footy Highlights" --snapshot <dir> [--seed FootyKit/Tests/FootyKitTests/Fixtures] [--dark x]` renders the main screens to PNGs offscreen, using last season's fixtures, so UI checks never show current results. Used to verify M2–M4 without screen-recording permissions.
 - **D27. README key steps now point to Settings** (with `.env` as the developer path), per the plan's note that the guides would move once the app exists.
+
+### M3 — Player
+- **D28. The player is created when the player screen opens.** Pressing Play on a match row is the user's Play, so the video autoplays with no thumbnail or poster first.
+- **D29. With "Hide video durations" on, the progress bar is removed** and only elapsed time shows. Any bar would show how far through the video you are, which gives away the length. The plan says "the progress bar then shows elapsed time only", which I read as this.
+- **D30. Controls bar:** play/pause, −10 s / +10 s, elapsed / total time, seek slider (no previews), mute + volume slider, full screen. Shortcuts: Space, ←/→, F, and Esc (exits full screen). The web view never takes keyboard focus, so shortcuts always reach the app.
+- **D31. Full screen** puts the app window into macOS full screen and hides the heading and toolbar, so the video and controls bar fill the screen with the controls still below the video.
+- **D32. The end of a video shows a "Finished" panel** (Watch again / Back to round), after the player has been destroyed. Error panels: 101/150 "doesn't allow it to play inside other apps", 152/153 "YouTube refused…", 100 "no longer available", plus "Open on YouTube (may show score)".
+- **D33. Links clicked inside YouTube's player** (logo, title) open in the default browser instead of inside the app.
+- **D34. The player screen header shows the neutral title**, "Match info by Footy Highlights · video from <channel> on YouTube" and "Show original title…" (behind a spoiler confirmation), for ToS attribution (DP III.F.2.a). "Mark watched / Mark unwatched" is in the toolbar.
+- **Verified 2026-10-12 (muted, offscreen, no screenshots of video):** NBC, CBS, beIN, USA Sports and ESPN FC videos all play in the app's WKWebView. Pause, resume and destroy-on-end work. An official LALIGA video returns error 150 and shows the error panel. **Not verified by me:** the in-player spoiler surfaces from the spike (title flash, hover, outro), which need eyes on a real screen. Please re-check those when you first watch something.

@@ -6,8 +6,11 @@ struct FootyHighlightsApp: App {
 
     init() {
         #if DEBUG && os(macOS)
+            if SnapshotMode.outputDir != nil || PlayerTestMode.enabled { AppModel.automaticRefresh = false }
             if let dir = SnapshotMode.outputDir {
                 DispatchQueue.main.async { SnapshotMode.run(outputDir: dir) }
+            } else if PlayerTestMode.enabled {
+                DispatchQueue.main.async { PlayerTestMode.run() }
             }
         #endif
     }
