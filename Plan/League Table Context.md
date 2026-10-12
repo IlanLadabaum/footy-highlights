@@ -7,6 +7,7 @@
 - [DECIDED] **(v1) Pre-round table**, shown on the round screen beside the fixtures: when viewing a round's highlights, show the league table **as it stood before that round**, for context (title race, relegation fight) without revealing results.
 - [DECIDED] **(v1) "Show score & update table" checkbox** *(user, 2026-10-11)* per match, next to the "watched" checkbox. Ticking it reveals that match's score and applies the result to the displayed table. The table then reflects exactly the matches the user has chosen to reveal.
 - [DECIDED] **(v1) Hover highlighting** *(user, 2026-10-11)*: hovering over a match in the list highlights both teams' rows in the table.
+- [DECIDED] **"Update table with all scores from this matchweek"** *(user, 2026-10-12)*: a button at the top of the table viewer that reveals every finished match in the round at once and applies them all to the table (the same as ticking every "Show score & update table" box).
 - These also settle the "manual reveal" question in [Spoiler Protection](Spoiler%20Protection.md).
 
 ## How to build the table

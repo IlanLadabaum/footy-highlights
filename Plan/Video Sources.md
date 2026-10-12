@@ -56,6 +56,12 @@ Common caveats:
 - Telemundo Deportes `UCjZ7QPKb89R-4SxzBoceyOg`: Spanish, US, complete, no scores in titles.
 - DAZN Football `UCSZ21xyG8w_33KriMM69IxQ`: Canada only, big matches only.
 
+## Women's leagues (requested 2026-10-12)
+
+- [DECIDED] **Add support for the NWSL and the WSL** (Barclays Women's Super League). *(user, 2026-10-12)* Timing: after v1 (not yet scheduled in the Build Plan).
+- [OPEN] **Highlight sources (US):** not researched yet. To check: the NWSL's own channel and its US broadcasters' channels; the WSL's official channel and its US rights holder. For each: coverage, title format, spoilers in titles, embeddability.
+- [OPEN] **Fixture data:** football-data.org's free tier doesn't list either league (its free list is BL1, BSA, CL, CLI, DED, EC, ELC, FL1, PD, PL, PPL, SA, WC). Unless another free source turns up, both would use the no-key behaviour (date-based rounds, teams parsed from titles, no table, no "no highlights" rows), like the Carabao Cup.
+
 ## Bonus competitions (held for later)
 
 - [DECIDED] Listed here; **not included until the core app works**. *(user, 2026-10-11)*

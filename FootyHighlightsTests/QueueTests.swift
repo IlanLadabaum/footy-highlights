@@ -57,4 +57,15 @@ final class QueueTests: XCTestCase {
         XCTAssertTrue(model.queuedEntries.isEmpty)
         XCTAssertNil(model.popQueue())
     }
+
+    func testRevealAllScoresInRoundAndHideAgain() throws {
+        let model = try makeModel()
+        let round = model.library.competition("PL")!.rounds[0]
+        model.setAllRevealed(in: round, true)
+        let revealed = model.library.round(round.id)!
+        XCTAssertTrue(revealed.matches.allSatisfy(\.flags.revealed))
+        XCTAssertEqual(model.table(for: revealed)?.rows.filter { $0.played == 1 }.count, 6)
+        model.setAllRevealed(in: revealed, false)
+        XCTAssertTrue(model.library.round(round.id)!.matches.allSatisfy { !$0.flags.revealed })
+    }
 }

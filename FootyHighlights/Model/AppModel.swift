@@ -114,6 +114,21 @@ final class AppModel {
         return previous
     }
 
+    /// Finished matches in the round whose score can be revealed.
+    func revealableMatches(in round: Round) -> [MatchEntry] {
+        round.matches.filter { $0.fixture?.score != nil && $0.fixture?.status.isFinal == true }
+    }
+
+    /// "Update table with all scores": reveals (or hides again) every finished match in the round.
+    @discardableResult
+    func setAllRevealed(in round: Round, _ revealed: Bool) -> [MatchKey: MatchFlags] {
+        let keys = revealableMatches(in: round).flatMap(\.flagKeys)
+        guard !keys.isEmpty else { return [:] }
+        let previous = store.setFlags(keys, revealed: revealed)
+        rebuild()
+        return previous
+    }
+
     func revealFirstLeg(_ info: FirstLegInfo) {
         store.setFlags([.fixture(info.fixture.id)], revealed: true)
         rebuild()

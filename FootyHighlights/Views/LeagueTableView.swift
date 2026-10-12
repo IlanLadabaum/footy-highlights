@@ -8,6 +8,7 @@ struct LeagueTableView: View {
     let competition: CompetitionSummary
     let highlighted: Set<Int>
     @Environment(AppModel.self) private var model
+    @State private var confirmRevealAll = false
 
     var body: some View {
         if let table = model.table(for: round) {
@@ -39,14 +40,50 @@ struct LeagueTableView: View {
 
     private func header(_ table: AppModel.RoundTable) -> some View {
         VStack(alignment: .leading, spacing: 2) {
+            revealAllButton
+                .padding(.bottom, 8)
             Text("Table before \(round.name)").font(.headline)
             Text(table.revealedCount == 0
                  ? "Tick “Show score & update table” on a match to add its result."
-                 : "Including \(table.revealedCount) revealed result\(table.revealedCount == 1 ? "" : "s") from this round.")
+                 : "Including \(table.revealedCount) revealed result\(table.revealedCount == 1 ? "" : "s") from this \(noun).")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(12)
+    }
+
+    /// Reveals every finished match of the round at once (asks first, since it shows all their scores).
+    @ViewBuilder private var revealAllButton: some View {
+        let revealable = model.revealableMatches(in: round)
+        let live = model.library.round(round.id) ?? round
+        let allRevealed = !revealable.isEmpty && model.revealableMatches(in: live).allSatisfy(\.flags.revealed)
+        if !revealable.isEmpty {
+            if allRevealed {
+                Button("Hide this \(noun)'s scores again") { model.setAllRevealed(in: live, false) }
+                    .buttonStyle(.link)
+                    .font(.caption)
+            } else {
+                Button {
+                    confirmRevealAll = true
+                } label: {
+                    Label("Update table with all scores from this \(noun)", systemImage: "eye")
+                }
+                .controlSize(.small)
+                .confirmationDialog(
+                    "Show all \(revealable.count) scores from \(round.name)?", isPresented: $confirmRevealAll
+                ) {
+                    Button("Show All Scores") { model.setAllRevealed(in: live, true) }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Every finished match in this \(noun) will show its score and count in the table.")
+                }
+            }
+        }
+    }
+
+    /// "matchweek" (Premier League), "matchday" (other leagues), "round" otherwise.
+    private var noun: String {
+        competition.config.effectiveRoundStyle == .league ? (competition.config.roundNoun ?? "round").lowercased() : "round"
     }
 
     private var columnHeader: some View {

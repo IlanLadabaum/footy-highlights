@@ -37,6 +37,9 @@
   3. **Round screen** (after clicking a round): **fixtures on one side, league table on the other.**
 - [DECIDED] Implemented as a navigation stack (`NavigationStack`) with a back button / breadcrumbs. This works the same on Mac and iPad.
 
+- [DECIDED] **Choose which leagues appear on the home page** *(user, 2026-10-12)*: as leagues are added, the landing page gets crowded, so it gets an **"Add/remove leagues"** button that opens a list of every supported league with an on/off toggle each. Only enabled leagues show on the home page. Timing: not yet scheduled (planned alongside the new leagues).
+  - [OPEN] Details to settle when it's built: which leagues are on by default for a new user; whether turning a league off also stops fetching its data (saves quota) or only hides it; whether the toggles live on the home page, in Settings, or both.
+
 ### Open details for these screens
 
 - [DECIDED] **Unwatched counts** on competition tiles and on each round panel. *(user, 2026-10-11)* "Unwatched" counts highlight videos available but not yet watched; "No highlights available" rows don't count.
