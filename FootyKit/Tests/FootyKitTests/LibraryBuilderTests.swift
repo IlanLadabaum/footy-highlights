@@ -107,12 +107,28 @@ struct LibraryBuilderTests {
     }
 
     @Test func unmatchedVideoStillShowsInNearestRound() {
-        let fixtures = [TestData.fixture(1, arsenal, chelsea, "2025-10-04T14:00:00Z", matchday: 7)]
-        let videos = [nbc("x", "Mystery Town", "Unknown Rovers", "2025-10-05T17:00:00Z")]
+        // Leeds plays in this league (matchday 1) but not this week, and the other team is unknown:
+        // the video can't be matched, but one recognised team means it isn't another league's video.
+        let fixtures = [
+            TestData.fixture(1, arsenal, chelsea, "2025-10-04T14:00:00Z", matchday: 7),
+            TestData.fixture(2, leeds, forest, "2025-08-16T14:00:00Z", matchday: 1),
+        ]
+        let videos = [nbc("x", "Leeds United", "Unknown Rovers", "2025-10-05T17:00:00Z")]
         let library = builder.build(fixtures: fixtures, videos: videos, flags: [:], now: TestData.date("2025-10-10T00:00:00Z"))
         let round = library.competition("PL")!.rounds[0]
         #expect(round.matches.count == 2)
-        #expect(round.matches.contains { $0.neutralTitle == "Mystery Town v Unknown Rovers · Premier League" })
+        #expect(round.matches.contains { $0.neutralTitle == "Leeds United v Unknown Rovers · Premier League" })
+    }
+
+    @Test func mislabelledVideoFromAnotherLeagueIsHidden() {
+        let inter = TestData.team(108, "FC Internazionale Milano", short: "Inter")
+        let parma = TestData.team(112, "Parma Calcio 1913", short: "Parma")
+        let fixtures = [TestData.fixture(1, inter, parma, "2026-10-04T14:00:00Z", matchday: 6, competition: "SERIEA")]
+        let mislabelled = Video(
+            id: "m", channelKey: "cbs", originalTitle: "Southampton vs. Portsmouth: Extended Highlights | Serie A | CBS Sports Golazo",
+            publishedAt: TestData.date("2026-10-04T20:00:00Z"))
+        let library = builder.build(fixtures: fixtures, videos: [mislabelled], flags: [:], now: TestData.date("2026-10-10T00:00:00Z"))
+        #expect(library.competition("SERIEA")!.rounds.flatMap(\.matches).count == 1)
     }
 
     @Test func browserFallbackOfferedOnlyWithoutPrimary() {

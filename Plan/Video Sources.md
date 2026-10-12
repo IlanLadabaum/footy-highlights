@@ -68,7 +68,7 @@ Common caveats:
 
 | Competition | Known US source |
 |---|---|
-| EFL Championship / League One / League Two | CBS Sports Golazo (same format as UCL) |
+| EFL Championship / League One / League Two | CBS Sports Golazo (same format as UCL). [DECIDED] *(user, 2026-10-12)*: future leagues, **not yet**. The Championship is on football-data's free tier (`ELC`); League One/Two aren't. |
 | Coppa Italia | CBS Sports Golazo |
 | UCL qualifying rounds | CBS Sports Golazo |
 | Scottish Premiership (SPFL) | CBS Sports Golazo (sparse) |
@@ -95,6 +95,7 @@ Researched 2026-10-11.
   - Sportmonks: its free plan has no big leagues.
   - openfootball: no UCL or cups, and ~3 weeks stale when tested. Kept as a possible offline fixture source.
   - ESPN's undocumented API, FotMob, SofaScore: no licence, or their terms forbid automated access.
+- [DECIDED] **Mislabelled videos are hidden** *(user, 2026-10-12, reported as a bug)*: in a competition with fixture data, a video whose teams don't play in that competition at all (e.g. a CBS upload of Southampton v Portsmouth labelled "Serie A") isn't shown. A video with at least one recognised team still shows, per "show every video".
 - [DECIDED] Match each video to a fixture by (competition, date window, team aliases). Show **teams and home/away from the fixture**, not from the video title. This fixes the reversed USA Sports titles and inconsistent names.
 - **football-data competition codes for v1:** PL (Premier League), CL (Champions League), PD (La Liga), BL1 (Bundesliga), SA (Serie A), FL1 (Ligue 1). Free plan, verified with the developer's key 2026-10-11: BL1, BSA, CL, CLI, DED, EC, ELC, FL1, PD, PL, PPL, SA, WC. The Carabao Cup exists as **FLC** but returns **403 (restricted)** on the free plan. Bonus-list note: Championship (ELC), Primeira Liga (PPL) and Copa Libertadores (CLI) are free.
 - Useful enums (docs, Lookup Tables):

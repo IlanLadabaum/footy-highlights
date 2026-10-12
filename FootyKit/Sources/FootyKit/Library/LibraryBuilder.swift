@@ -102,8 +102,15 @@ public struct LibraryBuilder: Sendable {
                     earliestKickoff: cluster.lowerBound))
         }
 
-        // Videos that couldn't be matched still show (teams from the title, no round in the name).
-        for (video, title) in dedupe(unmatched) {
+        // Videos that couldn't be matched still show (teams from the title, no round in the name),
+        // unless neither team plays in this competition: that's a channel mislabelling another league's video.
+        let seasonTeams = Array(Set(fixtures.flatMap { [$0.home, $0.away] }))
+        let plausible = unmatched.filter { _, title in
+            [title.home, title.away].contains { name in
+                seasonTeams.contains { names.matchScore(videoName: name, team: $0) >= 2 }
+            }
+        }
+        for (video, title) in dedupe(plausible) {
             let entry = videoEntry(video, title, competition: competition, roundId: nil, titleRoundName: nil, flags: flags)
             if let index = bestRoundIndex(for: video.publishedAt, in: rounds) {
                 var round = rounds[index]
