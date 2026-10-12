@@ -6,6 +6,8 @@ Run: overnight build of M0–M4, started 2026-10-11.
 
 ## Deviations
 
+- **X1. Pre-round tables are computed locally from the season's results, not fetched from football-data's standings endpoint.** Finding (2026-10-11): `standings?season=…&date=…` silently ignores `date` and returns the *final/current* table — a spoiler trap like the `matchday` one. `matchday=` works but means one request per round. The app already downloads every season result (one request per competition), so it builds the table from "results with kickoff before the round's earliest kickoff" — the plan's back-calculation path — with zero extra requests. Verified: Premier League 2025-26 before matchday 11 matches football-data's official matchday-10 table exactly (unit test). No standings are cached because none are fetched (the "standings cache" in the M1 bullet is unused). The only standings request is the current table, used solely for deduction detection (see D12).
+
 ## Decisions
 
 ### M0 — Project setup
@@ -13,3 +15,18 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D2. Non-UI code lives in a local Swift package `FootyKit`** (plus a `footy-cli` executable for live-data checks). The app target is a thin SwiftUI layer.
 - **D3. No App Sandbox, no hardened runtime, ad-hoc signing ("Sign to Run Locally").** The app is distributed as an unsigned DMG (decided), so the sandbox brings nothing, and without it Debug builds can read `.env` from the project folder. Revisit if it's ever shipped via the App Store.
 - **D4. The app target is "multiplatform" via `supportedDestinations: [macOS]`.** Adding iPad later is a one-line change plus `#if os(macOS)` cleanup.
+
+### M1 — Data layer
+- **D5. Title rules live in `competitions.json`** as per-channel regexes (`home`/`away`/`label` groups) plus a per-competition label regex for shared channels (CBS → UCL / Serie A / Carabao). Built from ~4,000 real 2025-26 titles; ≥98% of standard-format titles parse and ≥95% of parsed highlights match their fixture in every competition (tests).
+- **D6. Excluded from the highlight filter:** beIN `RESUMEN` (Spanish-language duplicates), CBS UCL qualifiers, NBC Netbusters/compilations/full matches, ESPN FC non-"LALIGA Highlights" uploads.
+- **D7. ESPN FC teaser prefixes** are stripped when parsing team names (text up to the last emoji, or a leading run of ALL-CAPS words). The whole ESPN FC source carries the "may show spoiler at start" flag, as decided.
+- **D8. Matching window:** a video matches fixtures that kicked off between 1 h after and 5 days before it was published. If both names don't match, a single strongly recognised team that plays only once in that window is accepted. Team aliases (Wolves, Spurs, FC Cologne, PSG…) are in the config.
+- **D9. Display names** are football-data short names with readability overrides in config (e.g. "Nottingham" → "Nottingham Forest", "Barça" → "Barcelona", "Atleti" → "Atlético Madrid").
+- **D10. Round names:** "Matchweek N" for the Premier League (as in the plan's example), "Matchday N" for other leagues, "League Phase MD N" / "Round of 16 · 1st leg" etc. for the UCL.
+- **D11. Rounds listed** are those where at least one match has kicked off (or has a highlight). Upcoming fixtures inside a listed round show their kickoff time; live ones show "In progress".
+- **D12. Point deductions [pending your answer]:** the app fetches the current table once a day per league (never shown) and infers deductions as `3W + D − points`. Because the API gives no date for a deduction, pre-round tables **don't subtract it**; instead the table shows a footnote naming teams with a deduction this season. (Code supports subtracting; one-line change if you choose "apply".)
+- **D13. "Highlights not available yet"** for a finished match less than 36 h old with no video, instead of "No highlights available", since uploads lag kickoff by hours.
+- **D14. Without fixture data, the round comes from the title when the channel includes one** (CBS: "League Phase MD 1", "Third Round"); otherwise Fri–Mon "Weekend of …" / Tue–Thu "Midweek of …" windows in the user's time zone. This applies to the Carabao Cup always.
+- **D15. Unmatched videos in a competition with fixture data** are placed in the round whose dates cover their publish date, titled "<teams> · <competition>" (no round), per the fallback rule. Observed live: one CBS upload mislabelled "Serie A" (two English Championship clubs) shows up in Serie A this way. *Question for you: hide videos whose teams aren't in the competition at all, or keep "show every video" literally?* Kept for now.
+- **D16. Refresh details:** football-data season fetch per competition at most daily, or sooner (≥15 min) when a fixture that should be over isn't final yet; YouTube scan back to 1 Aug of the season's start year on first run, then incremental from the newest seen upload minus 2 days; a full rescan every 25 days and deletion of anything not seen for 30 days (ToS DP III.E.4.c). Only titles that parse as highlights are stored. First full refresh measured live: ~111 YouTube units, 11 football-data requests, ~30 s.
+- **D17. Debug builds read `.env` *before* the Keychain.** Ad-hoc-signed rebuilds change the code signature, so Keychain reads could prompt on every rebuild. Release builds use only the Keychain. Settings says when a key comes from `.env`.

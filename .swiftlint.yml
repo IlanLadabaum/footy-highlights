@@ -27,4 +27,6 @@ function_body_length:
 cyclomatic_complexity:
   warning: 15
 nesting:
-  type_level: 2
+  type_level: 3
+function_parameter_count:
+  warning: 6

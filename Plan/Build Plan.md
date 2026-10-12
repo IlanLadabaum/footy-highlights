@@ -29,6 +29,7 @@
   - The bundle ID matters: YouTube's Referer rule uses `https://io.github.ilanladabaum.footyhighlights`.
 - Repo layout, Swift formatting/linting, a test target. Fill in AGENTS.md's code style / build / test section.
 - Done when: an empty app builds and launches, tests run, and the first commit is made (on request).
+- [BUILT] 2026-10-11: XcodeGen project, FootyKit package, SwiftLint/swift-format, app + package tests, first commit.
 
 ### M1 — Data layer (no UI)
 - Competition config file (channels, title rules, football-data code, priority order).
@@ -39,6 +40,7 @@
 - Local store (SwiftData): videos, fixtures, watched/revealed flags, standings cache, refresh timestamps.
 - Keychain storage for keys; developer builds also read `.env`.
 - Done when: a test/CLI run produces correct neutral titles and rounds for every v1 competition from live data.
+- [BUILT] 2026-10-12: all of the above in `FootyKit` (40 unit tests incl. real 2025-26 titles/fixtures). Live `footy-cli` run: every v1 competition populated; 100% of PL/UCL/Bundesliga/Ligue 1/La Liga highlights matched to fixtures, 1 mislabelled CBS upload unmatched in Serie A. Standings are computed locally rather than fetched (see `DEVIATIONS.md` X1).
 
 ### M2 — Navigation screens
 - Competition screen (two sections, priority order, unwatched counts, mark all).

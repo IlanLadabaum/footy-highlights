@@ -1,0 +1,191 @@
+{
+  "channels": {
+    "nbc": {
+      "channelId": "UCqZQlzSHbVJrwrn5XvzrzcA",
+      "name": "NBC Sports",
+      "titlePattern": "^(?<home>.+?) v\\.? (?<away>.+?) \\| PREMIER LEAGUE HIGHLIGHTS\\b"
+    },
+    "cbs": {
+      "channelId": "UCET00YnetHT7tOpu12v8jxg",
+      "name": "CBS Sports Golazo",
+      "titlePattern": "^(?<home>.+?) vs?\\.? (?<away>.+?)(?::| \\|) Extended Highlights? \\| (?<label>[^|]+?)\\s*(?:\\||$)",
+      "extendedPattern": "Extended Highlight"
+    },
+    "bein": {
+      "channelId": "UC0YatYmg5JRYzXJPxIdRd8g",
+      "name": "beIN SPORTS USA",
+      "titlePattern": "^(?<home>.+?) vs\\.? (?<away>.+?) \\| (?:(?:EXTENDED )?HIGH?L?IGHTS -? ?Ligue 1|Ligue 1 HIGH?L?IGHTS)\\b",
+      "extendedPattern": "EXTENDED HIGHLIGHTS"
+    },
+    "usa": {
+      "channelId": "UC9u0o8uDT5Z6IsrXp2Grs9Q",
+      "name": "USA Sports",
+      "titlePattern": "^(?<home>.+?) vs?\\.? (?<away>.+?) \\| BUNDESLIGA HIGHLIGHTS\\b"
+    },
+    "espnfc": {
+      "channelId": "UC6c1z7bA__85CIWZ_jpCK-Q",
+      "name": "ESPN FC",
+      "titlePattern": "^(?<home>.+?) vs\\.? (?<away>.+?) \\| LALIGA Highlights\\b",
+      "spoilerProneTitles": true,
+      "stripTeaserPrefix": true
+    },
+    "laliga": {
+      "channelId": "UCTv-XvfzLX3i4IGWAm4sbmA",
+      "name": "LALIGA EA SPORTS",
+      "titlePattern": "^(?<home>.+?)\\s+\\d+\\s*-\\s*\\d+\\s+(?<away>.+?)\\s*\\|\\s*RESUMEN LALIGA\\b",
+      "spoilerProneTitles": true
+    }
+  },
+  "competitions": [
+    {
+      "id": "UCL",
+      "name": "Champions League",
+      "priority": 1,
+      "footballDataCode": "CL",
+      "roundStyle": "ucl",
+      "tiebreak": "ucl",
+      "sources": [
+        { "channel": "cbs", "label": "^UCL (?!Qualif)(?<round>.+)$" }
+      ]
+    },
+    {
+      "id": "PL",
+      "name": "Premier League",
+      "priority": 2,
+      "footballDataCode": "PL",
+      "roundNoun": "Matchweek",
+      "tiebreak": "premierLeague",
+      "sources": [
+        { "channel": "nbc" }
+      ]
+    },
+    {
+      "id": "LALIGA",
+      "name": "La Liga",
+      "priority": 3,
+      "footballDataCode": "PD",
+      "roundNoun": "Matchday",
+      "tiebreak": "headToHeadFirst",
+      "sources": [
+        { "channel": "espnfc" },
+        { "channel": "laliga", "role": "browserFallback" }
+      ]
+    },
+    {
+      "id": "BUNDESLIGA",
+      "name": "Bundesliga",
+      "priority": 4,
+      "footballDataCode": "BL1",
+      "roundNoun": "Matchday",
+      "tiebreak": "bundesliga",
+      "sources": [
+        { "channel": "usa" }
+      ]
+    },
+    {
+      "id": "SERIEA",
+      "name": "Serie A",
+      "priority": 5,
+      "footballDataCode": "SA",
+      "roundNoun": "Matchday",
+      "tiebreak": "headToHeadFirst",
+      "sources": [
+        { "channel": "cbs", "label": "^Serie A$" }
+      ]
+    },
+    {
+      "id": "LIGUE1",
+      "name": "Ligue 1",
+      "priority": 6,
+      "footballDataCode": "FL1",
+      "roundNoun": "Matchday",
+      "tiebreak": "ligue1",
+      "sources": [
+        { "channel": "bein" }
+      ]
+    },
+    {
+      "id": "CARABAO",
+      "name": "Carabao Cup",
+      "priority": 7,
+      "isCup": true,
+      "sources": [
+        { "channel": "cbs", "label": "^Carabao Cup\\s*(?<round>.*)$" }
+      ]
+    }
+  ],
+  "teamDisplayNames": {
+    "Brighton Hove": "Brighton",
+    "Nottingham": "Nottingham Forest",
+    "Atleti": "Atlético Madrid",
+    "Barça": "Barcelona",
+    "Sevilla FC": "Sevilla",
+    "Venezia FC": "Venezia",
+    "Como 1907": "Como",
+    "Angers SCO": "Angers",
+    "RC Lens": "Lens",
+    "HSV": "Hamburger SV",
+    "Bremen": "Werder Bremen",
+    "Olympique Lyon": "Lyon",
+    "M'gladbach": "Mönchengladbach",
+    "Athletic": "Athletic Club",
+    "Stade Rennais": "Rennes",
+    "Man United": "Manchester United",
+    "Man City": "Manchester City",
+    "Leverkusen": "Bayer Leverkusen",
+    "Dortmund": "Borussia Dortmund",
+    "Frankfurt": "Eintracht Frankfurt",
+    "Bayern": "Bayern Munich",
+    "Santander": "Racing Santander",
+    "Deportivo": "Deportivo La Coruña"
+  },
+  "teamAliases": {
+    "wolves": "wolverhampton wanderers",
+    "spurs": "tottenham hotspur",
+    "man utd": "manchester united",
+    "man united": "manchester united",
+    "man city": "manchester city",
+    "forest": "nottingham forest",
+    "brighton": "brighton and hove albion",
+    "fc cologne": "koln",
+    "cologne": "koln",
+    "bayern munich": "bayern munchen",
+    "gladbach": "monchengladbach",
+    "inter milan": "internazionale milano",
+    "inter": "internazionale milano",
+    "psg": "paris saint germain",
+    "paris sg": "paris saint germain",
+    "rennes": "stade rennais",
+    "stade rennes": "stade rennais",
+    "lyon": "olympique lyonnais",
+    "marseille": "olympique de marseille",
+    "brest": "stade brestois",
+    "strasbourg": "strasbourg alsace",
+    "lens": "racing club de lens",
+    "atletico madrid": "atletico de madrid",
+    "atletico": "atletico de madrid",
+    "athletic bilbao": "athletic",
+    "betis": "real betis balompie",
+    "celta vigo": "celta de vigo",
+    "celta": "celta de vigo",
+    "alaves": "deportivo alaves",
+    "rayo": "rayo vallecano de madrid",
+    "racing santander": "real racing club de santander",
+    "deportivo la coruna": "deportivo la coruna",
+    "leverkusen": "bayer leverkusen",
+    "hoffenheim": "hoffenheim",
+    "mainz": "mainz",
+    "psv": "psv eindhoven",
+    "sporting cp": "sporting clube de portugal",
+    "sporting lisbon": "sporting clube de portugal",
+    "benfica": "sport lisboa e benfica",
+    "porto": "futebol clube do porto",
+    "bodo glimt": "bodo glimt",
+    "salzburg": "red bull salzburg",
+    "olympiacos": "olympiakos",
+    "qarabag": "qarabag agdam",
+    "union sg": "union saint gilloise",
+    "club brugge": "club brugge kv",
+    "copenhagen": "kobenhavn"
+  }
+}
