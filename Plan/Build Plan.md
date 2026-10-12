@@ -64,6 +64,7 @@
 - Hover highlight of both teams.
 - UCL league-phase table; full-width fixtures for cups and knockout rounds.
 - Done when: the table for a past round matches the official table for that date.
+- [BUILT] 2026-10-12: pre-round table, reveal checkbox, hover highlight, per-league tiebreakers, UCL league-phase table, full-width cups/knockouts. Done-when met by unit test (PL 2025-26 before MW11 = official table). Point deductions: detected but not applied, pending the developer ([OPEN] above).
 
 ### M5 — Polish and release
 - App icon, README install/run instructions, screenshots (spoiler-free!).
@@ -73,4 +74,4 @@
 
 ## Progress
 
-- (updated as milestones complete)
+- 2026-10-12: M0–M4 built overnight (commits on `main`, not pushed). M5 waiting. Agent decisions awaiting review are in `DEVIATIONS.md`.

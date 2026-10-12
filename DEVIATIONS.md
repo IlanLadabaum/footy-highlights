@@ -53,3 +53,16 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D33. Links clicked inside YouTube's player** (logo, title) open in the default browser instead of inside the app.
 - **D34. The player screen header shows the neutral title**, "Match info by Footy Highlights · video from <channel> on YouTube" and "Show original title…" (behind a spoiler confirmation), for ToS attribution (DP III.F.2.a). "Mark watched / Mark unwatched" is in the toolbar.
 - **Verified 2026-10-12 (muted, offscreen, no screenshots of video):** NBC, CBS, beIN, USA Sports and ESPN FC videos all play in the app's WKWebView. Pause, resume and destroy-on-end work. An official LALIGA video returns error 150 and shows the error panel. **Not verified by me:** the in-player spoiler surfaces from the spike (title flash, hover, outro), which need eyes on a real screen. Please re-check those when you first watch something.
+
+### M4 — League table
+- **D35. Table columns:** #, Team, P, W, D, L, GD, Pts. No form, no goals for/against. The header reads "Table before <round>" plus how many revealed results from this round are included.
+- **D36. Tiebreakers implemented** (head-to-head computed among the tied teams):
+  - Premier League: points, GD, goals for, head-to-head points, head-to-head away goals.
+  - La Liga and Serie A: points, then head-to-head points and GD **only once the tied teams have played each other twice**; otherwise GD, then goals for.
+  - Bundesliga: points, GD, goals for, head-to-head, away goals.
+  - Ligue 1: points, GD, head-to-head points / GD / goals, goals for.
+  - UCL league phase: points, GD, goals for, away goals, wins, away wins.
+  - Final fallback everywhere: alphabetical. UEFA's later criteria (opponents' points, disciplinary) and fair-play rules aren't modelled.
+- **D37. Hovering a match highlights both teams' rows and scrolls the table to them** (useful for the 36-team UCL table).
+- **D38. Only results revealed *in this round* are applied** to its table. Results revealed in later rounds don't leak backwards.
+- Verified: the computed table for Premier League 2025-26 before Matchweek 11 matches football-data's official table exactly (unit test). Snapshot check with last season's data: reveal → table update, hover highlight, UCL/Carabao full-width rounds, light and dark mode.

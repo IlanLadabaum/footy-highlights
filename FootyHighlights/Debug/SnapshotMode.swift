@@ -45,6 +45,14 @@
             }
             screens.append(("4-player-finished", chrome(AnyView(FinishedPanel(replay: {}, back: {})))))
             screens.append(("4-player-error", chrome(AnyView(ErrorPanel(code: 150, video: nil, open: { _ in })))))
+            if let pl = library.competition("PL"), let round = pl.rounds.first(where: { $0.layout == .withTable }),
+                let fixture = round.matches.compactMap(\.fixture).last
+            {
+                screens.append((
+                    "5-table-hover",
+                    AnyView(LeagueTableView(round: round, competition: pl, highlighted: [fixture.home.id, fixture.away.id])
+                        .frame(width: 420))))
+            }
             for competition in library.competitions where !competition.rounds.isEmpty {
                 screens.append(("2-rounds-\(competition.id)", AnyView(NavigationStack { RoundsView(competitionId: competition.id) })))
                 screens.append(("3-round-\(competition.id)", AnyView(NavigationStack { RoundView(roundId: competition.rounds[0].id) })))

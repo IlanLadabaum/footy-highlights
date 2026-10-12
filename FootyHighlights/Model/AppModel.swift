@@ -114,6 +114,39 @@ final class AppModel {
         rebuild()
     }
 
+    // MARK: Tables
+
+    struct RoundTable {
+        var rows: [StandingsEntry]
+        var revealedCount: Int
+        /// Teams with a point deduction this season (detected, not applied; see DEVIATIONS D12).
+        var deductionNotes: [String]
+    }
+
+    /// The table as it stood before the round, plus the results the user revealed in this round.
+    func table(for round: Round) -> RoundTable? {
+        guard let cutoff = round.earliestKickoff,
+            let competition = config.competition(id: round.id.competitionId),
+            let season = round.matches.compactMap(\.fixture).first?.season
+        else { return nil }
+        let fixtures = (library.fixturesByCompetition[competition.id] ?? []).filter { $0.season == season }
+        let revealed = Set(round.matches.filter { $0.flags.revealed }.compactMap(\.fixture?.id))
+        let names = TeamNames(config: config)
+        let calculator = StandingsCalculator(rule: competition.tiebreak ?? .premierLeague) { names.displayName(for: $0) }
+        let rows = calculator.table(fixtures: fixtures, before: cutoff, applying: revealed)
+        let deductions = competition.footballDataCode.map { store.deductions(code: $0, season: season) } ?? [:]
+        let notes = rows.compactMap { row -> String? in
+            guard let points = deductions[row.team.id] else { return nil }
+            return "\(names.displayName(for: row.team)) had \(points) point\(points == 1 ? "" : "s") deducted this season (not included)."
+        }
+        let applied = revealed.filter { id in fixtures.contains { $0.id == id && $0.utcDate >= cutoff && $0.status.isFinal } }
+        return RoundTable(rows: rows, revealedCount: applied.count, deductionNotes: notes)
+    }
+
+    func displayName(_ team: Team) -> String {
+        TeamNames(config: config).displayName(for: team)
+    }
+
     // MARK: Lookups
 
     func entry(_ key: MatchKey) -> MatchEntry? {

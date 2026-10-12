@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TableRow: Hashable, Sendable, Identifiable {
+public struct StandingsEntry: Hashable, Sendable, Identifiable {
     public var team: Team
     public var position: Int
     public var played: Int
@@ -49,12 +49,12 @@ public struct StandingsCalculator: Sendable {
     /// `revealed`: extra fixtures (from the round being viewed) to apply on top.
     public func table(
         fixtures: [Fixture], before cutoff: Date, applying revealed: Set<Int> = [], deductions: [Int: Int] = [:]
-    ) -> [TableRow] {
+    ) -> [StandingsEntry] {
         let league = fixtures.filter { !$0.isKnockout }
-        var rows: [Int: TableRow] = [:]
+        var rows: [Int: StandingsEntry] = [:]
         for fixture in league {
-            rows[fixture.home.id] = rows[fixture.home.id] ?? TableRow(team: fixture.home)
-            rows[fixture.away.id] = rows[fixture.away.id] ?? TableRow(team: fixture.away)
+            rows[fixture.home.id] = rows[fixture.home.id] ?? StandingsEntry(team: fixture.home)
+            rows[fixture.away.id] = rows[fixture.away.id] ?? StandingsEntry(team: fixture.away)
         }
         let counted = league.filter { fixture in
             fixture.score != nil && fixture.status.isFinal && (fixture.utcDate < cutoff || revealed.contains(fixture.id))
@@ -67,7 +67,7 @@ public struct StandingsCalculator: Sendable {
         return ordered
     }
 
-    static func apply(_ fixture: Fixture, to rows: inout [Int: TableRow]) {
+    static func apply(_ fixture: Fixture, to rows: inout [Int: StandingsEntry]) {
         guard let goals = fixture.score?.goals else { return }
         var home = rows[fixture.home.id]!
         var away = rows[fixture.away.id]!
@@ -123,15 +123,15 @@ public struct StandingsCalculator: Sendable {
 
     /// Sort by the first step, split ties into groups and resolve each group with the remaining steps
     /// (head-to-head steps are computed among the group's teams only). Final fallback: name.
-    func order(_ rows: [TableRow], steps: [Step], matches: [Fixture]) -> [TableRow] {
+    func order(_ rows: [StandingsEntry], steps: [Step], matches: [Fixture]) -> [StandingsEntry] {
         guard rows.count > 1 else { return rows }
         guard let step = steps.first else {
             return rows.sorted { sortName($0.team).localizedCompare(sortName($1.team)) == .orderedAscending }
         }
         let values = value(of: step, for: rows, matches: matches)
         let sorted = rows.sorted { values[$0.id]! > values[$1.id]! }
-        var result: [TableRow] = []
-        var group: [TableRow] = []
+        var result: [StandingsEntry] = []
+        var group: [StandingsEntry] = []
         for row in sorted {
             if let last = group.last, values[last.id] != values[row.id] {
                 result += order(group, steps: Array(steps.dropFirst()), matches: matches)
@@ -143,8 +143,8 @@ public struct StandingsCalculator: Sendable {
         return result
     }
 
-    private func value(of step: Step, for rows: [TableRow], matches: [Fixture]) -> [Int: Int] {
-        func each(_ body: (TableRow) -> Int) -> [Int: Int] {
+    private func value(of step: Step, for rows: [StandingsEntry], matches: [Fixture]) -> [Int: Int] {
+        func each(_ body: (StandingsEntry) -> Int) -> [Int: Int] {
             Dictionary(uniqueKeysWithValues: rows.map { ($0.id, body($0)) })
         }
         switch step {
@@ -169,11 +169,11 @@ public struct StandingsCalculator: Sendable {
     }
 
     /// Mini-table of matches among `rows`' teams. Nil when `requireComplete` and some pair hasn't met twice.
-    private func headToHead(_ rows: [TableRow], matches: [Fixture], requireComplete: Bool) -> [Int: TableRow]? {
+    private func headToHead(_ rows: [StandingsEntry], matches: [Fixture], requireComplete: Bool) -> [Int: StandingsEntry]? {
         let ids = Set(rows.map(\.id))
         let mutual = matches.filter { ids.contains($0.home.id) && ids.contains($0.away.id) }
         if requireComplete, mutual.count < ids.count * (ids.count - 1) { return nil }
-        var mini = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, TableRow(team: $0.team)) })
+        var mini = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, StandingsEntry(team: $0.team)) })
         for fixture in mutual { Self.apply(fixture, to: &mini) }
         return mini
     }
