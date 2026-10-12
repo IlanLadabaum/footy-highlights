@@ -66,13 +66,27 @@
             controller.togglePlay()
             try? await Task.sleep(for: .seconds(1))
             summary += " pause=\(paused) resume=\(controller.phase == .playing)"
+            // Queue hand-off: at the end, load a second video into the same player, then let that one finish.
+            var handedOff = false
+            controller.nextVideo = {
+                guard !handedOff else { return nil }
+                handedOff = true
+                return videoId
+            }
+            controller.seek(to: max(0, controller.duration - 3))
+            for _ in 0..<160 {
+                try? await Task.sleep(for: .milliseconds(250))
+                if handedOff, controller.phase == .playing, controller.currentTime < 30 { break }
+            }
+            summary += " queueNext=\(handedOff && controller.phase == .playing)"
             // Jump to the end: the player should report ENDED and be destroyed.
+            for _ in 0..<40 where controller.duration == 0 { try? await Task.sleep(for: .milliseconds(250)) }
             controller.seek(to: max(0, controller.duration - 3))
             for _ in 0..<160 {
                 try? await Task.sleep(for: .milliseconds(250))
                 if controller.phase == .finished { break }
             }
-            return summary + " end=\(controller.phase == .finished) t_end=\(Int(controller.currentTime)) events=\(events.suffix(4))"
+            return summary + " end=\(controller.phase == .finished) t_end=\(Int(controller.currentTime)) events=\(events)"
         }
     }
 #endif

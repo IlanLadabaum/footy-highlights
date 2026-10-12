@@ -127,6 +127,8 @@ public struct LibraryBuilder: Sendable {
                 }
             }
         }
+        // Chronological top to bottom (unmatched videos were appended above).
+        for index in rounds.indices { rounds[index].matches.sort { $0.date < $1.date } }
         return rounds
     }
 

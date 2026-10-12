@@ -24,9 +24,9 @@
             if let seed = argument("--seed") {
                 let store = try! Store(inMemory: true)  // swiftlint:disable:this force_try
                 seedStore(store, from: URL(fileURLWithPath: seed))
-                model = AppModel(store: store)
+                model = AppModel(store: store, defaults: UserDefaults(suiteName: "snapshot-\(UUID())")!)
             } else {
-                model = AppModel()
+                model = AppModel(defaults: UserDefaults(suiteName: "snapshot-\(UUID())")!)
             }
             try? FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true)
             let library = model.library
@@ -36,15 +36,14 @@
                 ("9-settings-advanced", AnyView(AdvancedSettings().frame(width: 560, height: 200))),
                 ("9-setup", AnyView(SetupView())),
             ]
-            let idle = PlayerController(videoId: "none")
-            let chrome = { (panel: AnyView) in
-                AnyView(VStack(spacing: 0) {
-                    ZStack { Color.black; panel }
-                    PlayerControls(controller: idle, hideDurations: false, isFullScreen: false, toggleFullScreen: {})
-                })
-            }
-            screens.append(("4-player-finished", chrome(AnyView(FinishedPanel(replay: {}, back: {})))))
-            screens.append(("4-player-error", chrome(AnyView(ErrorPanel(code: 150, video: nil, open: { _ in })))))
+            screens.append(("4-player-finished", AnyView(ZStack { Color.black; FinishedPanel(isQueue: true, replay: {}, back: {}) })))
+            screens.append(("4-player-error", AnyView(ZStack {
+                Color.black
+                ErrorPanel(code: 150, video: nil, open: { _ in }, skip: {})
+            })))
+            // Queue popover content with a few seeded matches.
+            for entry in library.competition("PL")?.rounds.first?.matches.prefix(4) ?? [] { model.enqueue(entry) }
+            screens.append(("6-queue", AnyView(QueueView(close: {}).frame(height: 400))))
             if let pl = library.competition("PL"), let round = pl.rounds.first(where: { $0.layout == .withTable }),
                 let fixture = round.matches.compactMap(\.fixture).last
             {

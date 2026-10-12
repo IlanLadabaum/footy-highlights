@@ -56,8 +56,18 @@
   - (b) Keep the same three screens, but build "rounds" from upload dates: a weekend or midweek window, e.g. "Weekend of 10–11 Oct".
   - Agent's view: (a) isn't hard to build, but (b) is the better design. It keeps one navigation flow and one set of screens to test, keeps long competitions scrollable by week instead of one ever-growing list, and keeps per-round "mark all as watched" working. Its weakness is that a postponed midweek game lands in the wrong group, which is acceptable in the degraded mode.
 - [DECIDED] **Where the video plays:** a dedicated **player screen** (back returns to the round), with a **full-screen button** like YouTube's. *(user, 2026-10-11)*
-  - [DECIDED] Full screen = the app's player view goes full screen (YouTube's own full-screen button is hidden by `controls=0`). App controls stay in a bar **below** the video, never on top of it (ToS). On 16:10 Mac screens there's natural room below a 16:9 video.
-  - [DECIDED] Keyboard shortcuts: space (play/pause), ←/→ (±10 s), F (full screen), Esc (exit full screen).
+  - [DECIDED] (2026-10-12) Full screen, play/pause, seeking, subtitles and keyboard shortcuts come from **YouTube's own player controls** (see [In-App Player](In-App%20Player.md)). Any app controls stay in a bar **below** the video, never on top of it (ToS).
+
+## Queue
+
+- [DECIDED] **Queue** *(user, 2026-10-12)*: while browsing the normal screens, the user can add any number of highlights to a queue, then press a button to start it. The queue plays in order on the player screen.
+  - [DECIDED] A video is marked watched only when the player **reaches** it, not when it's added to the queue.
+  - [DECIDED] The queue can be opened, **reordered by dragging**, and emptied with a **Clear queue** button.
+  - [DECIDED] **"Queue all unwatched"** on each round (matchweek): queues that round's unwatched highlights in chronological order (the order rows are listed in). *(user, 2026-10-12)*
+
+## Table in the player
+
+- [DECIDED] **"Show table" button inside the player screen** opens the round's pre-round table on the right of the video, to check the table during the game; it can be closed again. *(user, 2026-10-12)*
 
 ## Match rows
 

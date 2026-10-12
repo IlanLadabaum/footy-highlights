@@ -15,6 +15,12 @@ final class AppModel {
     /// Off in the developer snapshot/test modes, so the main window doesn't refresh alongside them.
     static var automaticRefresh = true
 
+    /// The main window's navigation stack.
+    var path: [Route] = []
+    /// Highlights waiting to play, in order. Persisted between launches.
+    private(set) var queue: [MatchKey] = []
+    private static let queueDefaultsKey = "queue"
+
     private(set) var library = Library.empty
     private(set) var keys = APIKeys(youTube: nil, footballData: nil)
     private(set) var keySources: [APIKeyKind: KeySource] = [:]
@@ -28,7 +34,10 @@ final class AppModel {
     var hasYouTubeKey: Bool { !(keys.youTube ?? "").isEmpty }
     var hasFootballDataKey: Bool { !(keys.footballData ?? "").isEmpty }
 
-    init(store injected: Store? = nil) {
+    private let defaults: UserDefaults
+
+    init(store injected: Store? = nil, defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         var openError: String?
         let store = injected ?? {
             do {
@@ -45,6 +54,7 @@ final class AppModel {
         builder = LibraryBuilder(config: config)
         reloadKeys()
         lastRefresh = refresher.lastRefresh
+        queue = (defaults.stringArray(forKey: Self.queueDefaultsKey) ?? []).compactMap(MatchKey.init(string:))
         rebuild()
     }
 
@@ -112,6 +122,80 @@ final class AppModel {
     func restore(_ previous: [MatchKey: MatchFlags]) {
         store.restoreFlags(previous)
         rebuild()
+    }
+
+    // MARK: Queue
+
+    /// Queued entries that still exist and can play, in queue order.
+    var queuedEntries: [MatchEntry] {
+        queue.compactMap { entry($0) }.filter(\.isPlayable)
+    }
+
+    func isQueued(_ entry: MatchEntry) -> Bool { queue.contains(entry.id) }
+
+    /// Adding to the queue doesn't mark anything watched; that happens when the player reaches it.
+    func enqueue(_ entry: MatchEntry) {
+        guard entry.isPlayable, !queue.contains(entry.id) else { return }
+        queue.append(entry.id)
+        saveQueue()
+    }
+
+    func dequeue(_ key: MatchKey) {
+        queue.removeAll { $0 == key }
+        saveQueue()
+    }
+
+    func toggleQueued(_ entry: MatchEntry) {
+        if isQueued(entry) {
+            dequeue(entry.id)
+        } else {
+            enqueue(entry)
+        }
+    }
+
+    /// Reorders using offsets into `queuedEntries` (what the queue list shows).
+    func moveQueue(from source: IndexSet, to destination: Int) {
+        var keys = queuedEntries.map(\.id)
+        keys.move(fromOffsets: source, toOffset: destination)
+        queue = keys
+        saveQueue()
+    }
+
+    func clearQueue() {
+        queue = []
+        saveQueue()
+    }
+
+    /// Takes the next playable highlight off the queue and marks it watched (the player has reached it).
+    func popQueue() -> MatchEntry? {
+        while let key = queue.first {
+            queue.removeFirst()
+            saveQueue()
+            if let next = entry(key), next.isPlayable {
+                setWatched([next], true)
+                return entry(key)
+            }
+        }
+        return nil
+    }
+
+    /// Queues the round's unwatched highlights in the order they're listed (chronological). Returns how many were added.
+    @discardableResult
+    func queueAllUnwatched(in round: Round) -> Int {
+        let added = round.matches.filter { $0.isUnwatched && !queue.contains($0.id) }
+        queue += added.map(\.id)
+        saveQueue()
+        return added.count
+    }
+
+    func startQueue() {
+        guard !queuedEntries.isEmpty else { return }
+        if path.last == .queue { return }
+        path.append(.queue)
+    }
+
+    private func saveQueue() {
+        defaults.set(queue.map(\.description), forKey: Self.queueDefaultsKey)
     }
 
     // MARK: Tables

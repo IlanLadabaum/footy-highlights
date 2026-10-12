@@ -125,10 +125,20 @@ struct MatchRow: View {
 
     @ViewBuilder private var actions: some View {
         if entry.isPlayable {
-            NavigationLink(value: Route.player(entry.id)) {
-                Label("Play", systemImage: "play.fill")
+            HStack(spacing: 8) {
+                let queued = model.isQueued(entry)
+                Button {
+                    model.toggleQueued(entry)
+                } label: {
+                    Label(queued ? "Queued" : "Queue", systemImage: queued ? "text.badge.checkmark" : "text.badge.plus")
+                }
+                .buttonStyle(.bordered)
+                .help(queued ? "Remove from the queue" : "Add to the queue (it's marked watched only when it plays)")
+                NavigationLink(value: Route.player(entry.id)) {
+                    Label("Play", systemImage: "play.fill")
+                }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
         } else if let fallback = entry.browserFallbackVideo {
             Button {
                 openURL(Formatting.youTubeURL(fallback))
@@ -143,6 +153,7 @@ struct MatchRow: View {
     @ViewBuilder private var contextMenu: some View {
         if entry.isPlayable {
             Button(entry.flags.watched ? "Mark Unwatched" : "Mark Watched") { model.setWatched([entry], !entry.flags.watched) }
+            Button(model.isQueued(entry) ? "Remove from Queue" : "Add to Queue") { model.toggleQueued(entry) }
         }
         if entry.video != nil || entry.browserFallbackVideo != nil {
             Button("Show Original Title…") { confirmOriginalTitle = true }

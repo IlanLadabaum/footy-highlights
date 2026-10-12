@@ -1,8 +1,9 @@
 import FootyKit
 import Foundation
 
-/// The local page hosting the YouTube IFrame Player API. Only documented player parameters and API
-/// calls are used; nothing is injected into or drawn over YouTube's player (ToS / RMF).
+/// The local page hosting the YouTube IFrame Player API with YouTube's own controls. Only documented
+/// player parameters and API calls are used; nothing is injected into or drawn over the player (ToS / RMF).
+/// Annotations are off (`iv_load_policy=3`).
 enum PlayerPage {
     /// Loaded with this base URL so WebKit sends the Referer YouTube requires for embeds (RMF, July 2025).
     static let baseURL = URL(string: "https://\(FootyKit.bundleIdentifier)")!
@@ -35,13 +36,15 @@ enum PlayerPage {
               window.onYouTubeIframeAPIReady = () => {
                 player = new YT.Player('yt', {
                   width: '100%', height: '100%', videoId: '\(safeId)',
-                  playerVars: { autoplay: 1, controls: 0, rel: 0, iv_load_policy: 3, playsinline: 1,
+                  playerVars: { autoplay: 1, controls: 1, fs: 1, rel: 0, iv_load_policy: 3, playsinline: 1,
                                 enablejsapi: 1, origin: '\(baseURL.absoluteString)' },
                   events: {
                     onReady: (e) => { \(muted ? "e.target.mute();" : "") e.target.playVideo(); post({ type: 'ready' }); },
                     onStateChange: (e) => {
                       post({ type: 'state', state: e.data });
-                      if (e.data === 0) { destroy(); post({ type: 'ended' }); }
+                      // At the end the app either loads the next queued video or destroys the player,
+                      // so YouTube's related-videos grid never stays on screen.
+                      if (e.data === 0) post({ type: 'ended' });
                     },
                     onError: (e) => { post({ type: 'error', code: e.data }); destroy(); },
                   },
@@ -60,6 +63,7 @@ enum PlayerPage {
                 pause: () => player && player.pauseVideo(),
                 seekBy: (s) => player && player.seekTo(Math.max(0, player.getCurrentTime() + s), true),
                 seekTo: (s) => player && player.seekTo(s, true),
+                load: (id) => player && player.loadVideoById(id),
                 setVolume: (v) => { if (player) { player.unMute(); player.setVolume(v); } },
                 mute: (m) => player && (m ? player.mute() : player.unMute()),
                 destroy,

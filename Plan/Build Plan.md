@@ -51,8 +51,10 @@
 - [BUILT] 2026-10-12: all four screens, undo, Settings window, first-launch setup. Verified with offscreen snapshots of last season's data (see `DEVIATIONS.md` D26).
 
 ### M3 — Player screen
-- WKWebView + IFrame API (`baseURL = https://<bundle-id>`), player created on Play, `controls=0`.
-- App controls below the video, full screen, keyboard shortcuts, pause.
+- WKWebView + IFrame API (`baseURL = https://<bundle-id>`), player created on Play, ~~`controls=0`~~ YouTube's controls (`controls=1`, decided 2026-10-12).
+- ~~App controls below the video, full screen, keyboard shortcuts, pause~~ → provided by YouTube's player (2026-10-12).
+- [DECIDED] (2026-10-12, added after M4) **Queue**: add from the normal screens, start with a button, marked watched only when reached, reorder by dragging, Clear queue. See [App Structure & Data Flow](App%20Structure%20%26%20Data%20Flow.md#queue). Includes **"Queue all unwatched"** per round.
+- [DECIDED] (2026-10-12, added after M4) **"Show table" in the player**: a closeable panel with the round's pre-round table beside the video. See [App Structure & Data Flow](App%20Structure%20%26%20Data%20Flow.md#table-in-the-player).
 - Destroy on end; errors 101/150/152/153 → message + YouTube fallback.
 - [DECIDED] **Watched works like email read status:** a video is marked watched **when it's opened**, and "Mark watched" / "Mark unwatched" buttons are always available. *(user, 2026-10-11)*
 - Done when: highlights from all v1 channels play correctly on the developer's Mac, re-checked against the spike's spoiler surfaces.

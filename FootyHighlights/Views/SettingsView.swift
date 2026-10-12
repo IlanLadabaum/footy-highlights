@@ -91,7 +91,7 @@ struct AdvancedSettings: View {
             Toggle("Hide video durations", isOn: $hideDurations)
             Text(
                 "Some matches have longer highlights than others, which can hint at the result. "
-                    + "This also hides the total and remaining time in the player.")
+                    + "This hides lengths in the app's lists; YouTube's player still shows them.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

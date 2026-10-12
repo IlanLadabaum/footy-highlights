@@ -23,7 +23,9 @@ struct RoundsView: View {
                             .frame(maxWidth: .infinity)
                     }
                     ForEach(Array(competition.rounds.enumerated()), id: \.element.id) { index, round in
-                        RoundPanel(round: round, isLatest: index == 0) { markAll(round) }
+                        RoundPanel(
+                            round: round, isLatest: index == 0, markAll: { markAll(round) },
+                            queueAll: { model.queueAllUnwatched(in: round) })
                     }
                 }
             }
@@ -50,6 +52,7 @@ struct RoundPanel: View {
     let round: Round
     let isLatest: Bool
     let markAll: () -> Void
+    let queueAll: () -> Void
 
     var body: some View {
         NavigationLink(value: Route.round(round.id)) {
@@ -72,10 +75,13 @@ struct RoundPanel: View {
         .buttonStyle(.plain)
         .overlay(alignment: .bottomTrailing) {
             if round.unwatchedCount > 0 {
-                Button("Mark all as watched", action: markAll)
-                    .buttonStyle(.borderless)
-                    .font(.caption)
-                    .padding(isLatest ? 20 : 12)
+                HStack(spacing: 16) {
+                    Button("Queue all unwatched", action: queueAll)
+                    Button("Mark all as watched", action: markAll)
+                }
+                .buttonStyle(.borderless)
+                .font(.caption)
+                .padding(isLatest ? 20 : 12)
             }
         }
     }

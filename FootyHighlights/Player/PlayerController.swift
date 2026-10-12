@@ -11,7 +11,7 @@ final class PlayerController: NSObject {
         case playing
         case paused
         case buffering
-        /// The video ended; the player has been destroyed.
+        /// The video ended and the player was destroyed (nothing queued after it).
         case finished
         /// YouTube reported an error (code), or -1 when the API couldn't load.
         case failed(Int)
@@ -24,9 +24,11 @@ final class PlayerController: NSObject {
     private(set) var isMuted = false
     /// Debug/test hook: every message from the page, in order.
     var onEvent: ((String) -> Void)?
+    /// Called when a video ends. Return the next video ID to keep playing (queue), or nil to finish.
+    var nextVideo: (() -> String?)?
 
     let webView: WKWebView
-    let videoId: String
+    private(set) var videoId: String
     private let muted: Bool
 
     init(videoId: String, muted: Bool = false) {
@@ -35,6 +37,8 @@ final class PlayerController: NSObject {
         let configuration = WKWebViewConfiguration()
         configuration.mediaTypesRequiringUserActionForPlayback = []
         configuration.websiteDataStore = .default()
+        // YouTube's own full-screen button.
+        configuration.preferences.isElementFullscreenEnabled = true
         webView = PlayerWebView(frame: .zero, configuration: configuration)
         super.init()
         configuration.userContentController.add(WeakMessageHandler(self), name: "player")
@@ -50,6 +54,25 @@ final class PlayerController: NSObject {
         phase = .loading
         currentTime = 0
         webView.loadHTMLString(PlayerPage.html(videoId: videoId, muted: muted), baseURL: PlayerPage.baseURL)
+    }
+
+    /// Switches to another video in the same player (keeps YouTube's full screen between queued videos).
+    func load(videoId: String) {
+        self.videoId = videoId
+        currentTime = 0
+        duration = 0
+        if playerGone {
+            start()
+        } else {
+            phase = .loading
+            call("footy.load('\(videoId.filter { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" })')")
+        }
+    }
+
+    /// The YouTube player was destroyed (ended or failed), so the page must be reloaded.
+    private var playerGone: Bool {
+        if case .failed = phase { return true }
+        return phase == .finished
     }
 
     func togglePlay() {
@@ -107,7 +130,12 @@ final class PlayerController: NSObject {
             if let muted = message["muted"] as? Bool { isMuted = muted }
         case "ended":
             onEvent?("ended")
-            phase = .finished
+            if let next = nextVideo?() {
+                load(videoId: next)
+            } else {
+                call("footy.destroy()")
+                phase = .finished
+            }
         case "error":
             let code = message["code"] as? Int ?? -1
             onEvent?("error:\(code)")
@@ -150,12 +178,8 @@ extension PlayerController: WKNavigationDelegate, WKUIDelegate {
     }
 }
 
-/// Keeps keyboard focus with the app's controls (space, arrows, F) instead of YouTube's player.
-final class PlayerWebView: WKWebView {
-    #if os(macOS)
-        override var acceptsFirstResponder: Bool { false }
-    #endif
-}
+/// The player's web view. YouTube's controls handle the keyboard (space, arrows, F, C for captions).
+final class PlayerWebView: WKWebView {}
 
 /// WKUserContentController retains its handlers; this breaks the cycle.
 private final class WeakMessageHandler: NSObject, WKScriptMessageHandler {

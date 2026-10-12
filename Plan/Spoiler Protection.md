@@ -21,13 +21,13 @@
 6. **Player UI.** Measured in the spike; details in [In-App Player](In-App%20Player.md#spike-results-2026-10-11).
    - Fixed compliantly:
      - no poster (player created on Play);
-     - no seek-bar previews (`controls=0`);
+     - ~~no seek-bar previews (`controls=0`)~~ — accepted risk since 2026-10-12: YouTube's controls are used, and users are trusted not to hover the seek bar;
      - no related-videos grid (destroy on end).
    - **Outro end-screen cards** (last ~20 s, can show other matches' scores): **not mitigated for now.** The developer doesn't want an auto-stop rule (2026-10-11). Raise it again if this causes a complaint (see [In-App Player](In-App%20Player.md)).
    - **Residual (accepted):**
      - The original title shows in the player for ~3 s at start and when the mouse hovers over the player.
      - Hovering also shows a "More videos" thumbnail.
-     - Mitigation: controls and keyboard shortcuts keep the mouse off the video. Choose sources whose titles carry no spoilers (see #7).
+     - Mitigation: choose sources whose titles carry no spoilers (see #7). (With YouTube's controls, the mouse is over the video whenever the user uses them.)
 7. **Source titles that spoil.** Because of #6, a spoiler in the *original* title can flash during playback. Clean sources: NBC, CBS, beIN, USA Sports. Problem sources: ESPN FC (teaser prefixes), LALIGA official (scores; also can't be embedded, so ruled out). YouTube's in-player title can't be hidden or replaced legally (verified 2026-10-11). La Liga uses ESPN FC (decided); the browser fallback for skipped matches can expose official titles with scores, so it carries a warning. [DECIDED] Videos from problem sources get a visible "may show spoiler at start" flag.
 8. **Normal vs extended versions.** [DECIDED] Prefer extended. [DECIDED] Show one entry per match, so whether an extended cut exists isn't visible as a separate item.
 9. **Order and timing.** [OPEN] Probably low risk.

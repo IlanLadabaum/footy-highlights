@@ -33,8 +33,10 @@ struct RoundView: View {
         }
         .navigationTitle(round.map { "\(competition?.config.name ?? "") · \($0.name)" } ?? "")
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItemGroup(placement: .primaryAction) {
                 if let round, round.unwatchedCount > 0 {
+                    Button("Queue all unwatched") { model.queueAllUnwatched(in: round) }
+                        .help("Add this round's unwatched highlights to the queue, in order")
                     Button("Mark all as watched") { markAll(round) }
                 }
             }

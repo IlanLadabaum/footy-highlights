@@ -3,18 +3,19 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppModel.self) private var model
-    @State private var path: [Route] = []
 
     var body: some View {
+        @Bindable var model = model
         Group {
             if model.hasYouTubeKey {
-                NavigationStack(path: $path) {
+                NavigationStack(path: $model.path) {
                     CompetitionsView()
                         .navigationDestination(for: Route.self) { route in
                             switch route {
                             case .competition(let id): RoundsView(competitionId: id)
                             case .round(let id): RoundView(roundId: id)
-                            case .player(let key): PlayerScreen(matchKey: key)
+                            case .player(let key): PlayerScreen(mode: .single(key))
+                            case .queue: PlayerScreen(mode: .queue)
                             }
                         }
                 }
@@ -34,6 +35,7 @@ struct RefreshToolbar: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
+            QueueToolbarButton()
             if model.isRefreshing {
                 ProgressView().controlSize(.small)
             } else if !model.refreshErrors.isEmpty {

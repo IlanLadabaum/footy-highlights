@@ -46,10 +46,7 @@ Run: overnight build of M0–M4, started 2026-10-11.
 
 ### M3 — Player
 - **D28. The player is created when the player screen opens.** Pressing Play on a match row is the user's Play, so the video autoplays with no thumbnail or poster first.
-- **D29. With "Hide video durations" on, the progress bar is removed** and only elapsed time shows. Any bar would show how far through the video you are, which gives away the length. The plan says "the progress bar then shows elapsed time only", which I read as this.
-- **D30. Controls bar:** play/pause, −10 s / +10 s, elapsed / total time, seek slider (no previews), mute + volume slider, full screen. Shortcuts: Space, ←/→, F, and Esc (exits full screen). The web view never takes keyboard focus, so shortcuts always reach the app.
-- **D31. Full screen** puts the app window into macOS full screen and hides the heading and toolbar, so the video and controls bar fill the screen with the controls still below the video.
-- **D32. The end of a video shows a "Finished" panel** (Watch again / Back to round), after the player has been destroyed. Error panels: 101/150 "doesn't allow it to play inside other apps", 152/153 "YouTube refused…", 100 "no longer available", plus "Open on YouTube (may show score)".
+- **D32. When the last video ends, the player is destroyed and a "Finished" panel shows** (Watch again / Back to round), after the player has been destroyed. Error panels: 101/150 "doesn't allow it to play inside other apps", 152/153 "YouTube refused…", 100 "no longer available", plus "Open on YouTube (may show score)".
 - **D33. Links clicked inside YouTube's player** (logo, title) open in the default browser instead of inside the app.
 - **D34. The player screen header shows the neutral title**, "Match info by Footy Highlights · video from <channel> on YouTube" and "Show original title…" (behind a spoiler confirmation), for ToS attribution (DP III.F.2.a). "Mark watched / Mark unwatched" is in the toolbar.
 - **Verified 2026-10-12 (muted, offscreen, no screenshots of video):** NBC, CBS, beIN, USA Sports and ESPN FC videos all play in the app's WKWebView. Pause, resume and destroy-on-end work. An official LALIGA video returns error 150 and shows the error panel. **Not verified by me:** the in-player spoiler surfaces from the spike (title flash, hover, outro), which need eyes on a real screen. Please re-check those when you first watch something.
@@ -66,3 +63,16 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D37. Hovering a match highlights both teams' rows and scrolls the table to them** (useful for the 36-team UCL table).
 - **D38. Only results revealed *in this round* are applied** to its table. Results revealed in later rounds don't leak backwards.
 - Verified: the computed table for Premier League 2025-26 before Matchweek 11 matches football-data's official table exactly (unit test). Snapshot check with last season's data: reveal → table update, hover highlight, UCL/Carabao full-width rounds, light and dark mode.
+
+### Changes requested 2026-10-12 (YouTube controls, queue, table in player)
+- **D39. Superseded by your decision:** the app's own controls bar and duration hiding inside the player are gone (old D29–D31 removed). YouTube's controls handle play/pause, seeking, subtitles (C key or the CC button), quality, speed, full screen and keyboard. `iv_load_policy=3` keeps annotations off.
+- **D40. Queue buttons:** each playable row has a "Queue" / "Queued" toggle next to Play (also in the right-click menu). A "Queue (N)" toolbar button on every browsing screen opens the queue popover: numbered list, drag to reorder, ✕ to remove one, **Clear Queue**, **Start Queue**. The popover shows the total length unless durations are hidden.
+- **D41. Queue behaviour:**
+  - The queue only holds upcoming videos. Each item leaves the queue and is marked watched the moment the player reaches it.
+  - Videos play back-to-back in the same YouTube player, so full screen survives between videos.
+  - The player screen's bottom bar shows "Up next", "+N more", the queue button and **Next** (skip). Starting the queue again doesn't re-add anything.
+  - **The queue is saved between launches**; you didn't say either way.
+  - Duplicates are ignored. Matches without an in-app highlight can't be queued.
+- **D42. "Queue all unwatched"** is on every round panel (rounds screen) and in the round screen's toolbar. It appends the round's unwatched highlights in list order, skipping any already queued. Round rows are now guaranteed chronological (unmatched videos used to be appended at the end).
+- **D43. "Show table" in the player:** a button in the bar below the video (⌘T) opens the round's pre-round table on the right, with the current match's two teams highlighted, and closes with ✕ or ⌘T. It only appears when the match's round has a table, not for cups or knockouts. It sits beside the video, so it isn't visible inside YouTube's own full screen. Use the window's green full-screen button instead to keep the table next to the video.
+- Verified 2026-10-12: queue unit tests (not watched until reached; reorder; remove; clear). The muted headless player test shows all five channels play with YouTube's controls, and the queue hand-off works: video ends → next loads in the same player → plays → last one is destroyed. Queue popover and round panels checked by snapshot.

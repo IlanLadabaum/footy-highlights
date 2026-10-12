@@ -54,15 +54,16 @@ Takeaways:
 
 ## Playback design
 
-- [DECIDED] SwiftUI view containing a WKWebView that loads a local HTML page with `baseURL = https://<bundle-id>` (Referer requirement). The page uses the IFrame Player API with `enablejsapi=1, controls=0, rel=0, iv_load_policy=3, playsinline=1, autoplay=1, origin`.
+- [DECIDED] SwiftUI view containing a WKWebView that loads a local HTML page with `baseURL = https://<bundle-id>` (Referer requirement). The page uses the IFrame Player API with `enablejsapi=1, controls=1, fs=1, rel=0, iv_load_policy=3, playsinline=1, autoplay=1, origin`.
+- [DECIDED] **Use YouTube's own player controls (`controls=1`)** instead of app-drawn ones, so subtitles, quality, speed and YouTube's full screen are available. *(user, 2026-10-12: the title shows most of the time anyway; users can be trusted not to hover the seek bar; losing in-player duration hiding is accepted.)* **Annotations stay off** (`iv_load_policy=3`, documented). Supersedes the earlier `controls=0` / app-drawn-controls decisions.
 - [DECIDED] The player is created only when the user presses Play in the app, so no thumbnail ever appears.
-- [DECIDED] App-drawn controls **below** the player: play/pause, ±10 s, a progress bar (without previews), volume, fullscreen of the *app window*, and keyboard shortcuts.
+- ~~[DECIDED] App-drawn controls below the player~~ — superseded 2026-10-12 by YouTube's controls (above). The app keeps only a bar below the video for its own functions (queue: up next / skip; mark watched).
 - [DECIDED] Destroy the player on ENDED and show the app's own "finished" panel (removes the related-videos grid).
 - **Outro handling:** [PROPOSED] **not to be implemented.** *(user, 2026-10-11: dislikes "stop 20 s before the end" as a rule.)* The idea: auto-stop when ~20 s remain, so the channel's outro cards (which can contain other matches' scores) never appear. Variants: a per-channel outro length, or a user setting. **Agent note: raise this again if the developer complains about spoilers at the end of videos.**
 - [DECIDED] Player at least 480×270.
 - [DECIDED] **Pausing is a required feature.** *(user, 2026-10-11)*
 - [DECIDED] Implement it as plain `pauseVideo()`/`playVideo()`; the spike showed a clean frame when paused with the mouse away. The gray-area alternative (destroy on pause, recreate on resume) is not used.
-- [DECIDED] The Advanced Settings "Hide video durations" toggle (default off) also hides total/remaining time in the player; the progress bar then shows elapsed time only. *(approved interpretation, 2026-10-11)*
+- [DECIDED] The Advanced Settings "Hide video durations" toggle (default off) hides durations in the app's lists only. *(user, 2026-10-12: hiding it inside YouTube's player is no longer possible with `controls=1`; loss accepted.)*
 
 ## Tech stack
 
