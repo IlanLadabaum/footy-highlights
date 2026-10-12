@@ -19,6 +19,7 @@ struct ContentView: View {
                             }
                         }
                 }
+                .overlay(alignment: .bottomTrailing) { StartQueueButton() }
             } else {
                 SetupView()
             }
@@ -107,5 +108,35 @@ final class UndoState {
     func undo(model: AppModel) {
         model.restore(previous)
         message = nil
+    }
+}
+
+/// Floating "Start queue" button, bottom right, whenever the queue has videos (not on the player screen).
+struct StartQueueButton: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        let count = model.queuedEntries.count
+        let onPlayer: Bool = {
+            switch model.path.last {
+            case .player, .queue: true
+            default: false
+            }
+        }()
+        if count > 0, !onPlayer {
+            Button {
+                model.startQueue()
+            } label: {
+                Label("Start queue (\(count))", systemImage: "play.fill")
+                    .font(.headline)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .shadow(radius: 6)
+            .padding(20)
+            .help("Play the queued highlights in order")
+        }
     }
 }

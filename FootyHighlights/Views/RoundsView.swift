@@ -30,6 +30,7 @@ struct RoundsView: View {
                 }
             }
             .padding(24)
+            .padding(.bottom, 60)  // room for the floating Start queue button
         }
         .navigationTitle(competition?.config.name ?? "")
         .toolbar { RefreshToolbar() }

@@ -20,6 +20,7 @@ struct CompetitionsView: View {
                 section("Nothing new", model.library.nothingNew, emptyText: nil)
             }
             .padding(24)
+            .padding(.bottom, 60)  // room for the floating Start queue button
         }
         .navigationTitle("Footy Highlights")
         .toolbar { RefreshToolbar() }

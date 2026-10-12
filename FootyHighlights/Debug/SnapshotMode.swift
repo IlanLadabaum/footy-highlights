@@ -44,6 +44,9 @@
             // Queue popover content with a few seeded matches.
             for entry in library.competition("PL")?.rounds.first?.matches.prefix(4) ?? [] { model.enqueue(entry) }
             screens.append(("6-queue", AnyView(QueueView(close: {}).frame(height: 400))))
+            screens.append((
+                "7-start-queue-button",
+                AnyView(NavigationStack { RoundsView(competitionId: "PL") }.overlay(alignment: .bottomTrailing) { StartQueueButton() })))
             if let pl = library.competition("PL"), let round = pl.rounds.first(where: { $0.layout == .withTable }),
                 let fixture = round.matches.compactMap(\.fixture).last
             {

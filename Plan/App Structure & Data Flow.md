@@ -66,6 +66,7 @@
 - [DECIDED] **Queue** *(user, 2026-10-12)*: while browsing the normal screens, the user can add any number of highlights to a queue, then press a button to start it. The queue plays in order on the player screen.
   - [DECIDED] A video is marked watched only when the player **reaches** it, not when it's added to the queue.
   - [DECIDED] The queue can be opened, **reordered by dragging**, and emptied with a **Clear queue** button.
+  - [DECIDED] **Start queue button on screen** *(user, 2026-10-12)*: whenever the queue has videos, a "Start queue" button floats in the bottom-right of the browsing screens (in addition to the one in the queue popover).
   - [DECIDED] **"Queue all unwatched"** on each round (matchweek): queues that round's unwatched highlights in chronological order (the order rows are listed in). *(user, 2026-10-12)*
 
 ## Table in the player
