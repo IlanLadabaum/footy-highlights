@@ -1,0 +1,30 @@
+included:
+  - FootyHighlights
+  - FootyHighlightsTests
+  - FootyKit/Sources
+  - FootyKit/Tests
+excluded:
+  - FootyKit/.build
+  - build
+  - legacy
+disabled_rules:
+  - trailing_comma        # swift-format adds trailing commas in multi-line literals
+  - opening_brace         # conflicts with swift-format's multi-line condition wrapping
+  - todo
+line_length:
+  warning: 140
+  error: 200
+  ignores_comments: true
+  ignores_urls: true
+identifier_name:
+  min_length: 1
+type_body_length:
+  warning: 400
+file_length:
+  warning: 600
+function_body_length:
+  warning: 80
+cyclomatic_complexity:
+  warning: 15
+nesting:
+  type_level: 2

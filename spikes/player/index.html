@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player Spike</title>
+<!--
+  THROWAWAY SPIKE — see Plan/In-App Player.md.
+  Question: which YouTube spoiler surfaces remain when we use ONLY ToS-compliant techniques
+  (official player parameters + IFrame API, player created on demand, removed when ended)?
+  No overlays on the player, no CSS/JS injected into the player frame.
+-->
+<style>
+  :root { --bg:#111; --fg:#eee; --muted:#999; --accent:#3b82f6; }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--fg); font:14px -apple-system, system-ui, sans-serif; }
+  .row { display:flex; gap:8px; align-items:center; margin:6px 0; flex-wrap:wrap; }
+  button { background:#222; color:var(--fg); border:1px solid #444; border-radius:6px; padding:6px 10px; cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  #stage { width:min(960px, 100%); aspect-ratio:16/9; background:#000; margin-top:12px; display:grid; place-items:center; }
+  #stage .placeholder { color:var(--muted); }
+  #log { font:12px ui-monospace, monospace; color:var(--muted); white-space:pre-wrap; margin-top:8px; max-height:160px; overflow:auto; }
+  label { color:var(--muted); }
+</style>
+</head>
+<body>
+<h3>Player spike: compliant spoiler surfaces</h3>
+<div class="row">
+  <button data-vid="0Lgb42Yr1Ck">Play: Man United v Tottenham · Premier League (NBC)</button>
+  <button data-vid="-V-F9y_7EWE">Play: Napoli v Frosinone · Serie A (CBS)</button>
+</div>
+<div class="row">
+  <label><input type="checkbox" id="controls"> YouTube controls (controls=1)</label>
+  <label><input type="checkbox" id="hideOnPause"> Hide player while paused</label>
+</div>
+<div class="row" id="custom">
+  <button id="pp">Play/Pause</button>
+  <button id="back">−10s</button>
+  <button id="fwd">+10s</button>
+  <button id="nearEnd">Jump to 15s before end</button>
+  <button id="close">Close player</button>
+  <span id="time" style="color:var(--muted)"></span>
+</div>
+<div id="stage"><div class="placeholder">No player loaded: nothing from YouTube is on screen</div></div>
+<div id="log"></div>
+
+<script>
+  const log = (m) => { const el = document.getElementById('log'); el.textContent = `${new Date().toLocaleTimeString()}  ${m}\n` + el.textContent; };
+  const stage = document.getElementById('stage');
+  let player = null, apiReady = false;
+
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+  window.onYouTubeIframeAPIReady = () => { apiReady = true; log('IFrame API ready'); };
+
+  function closePlayer() {
+    if (player) { player.destroy(); player = null; }
+    stage.innerHTML = '<div class="placeholder">Player removed</div>';
+  }
+
+  function play(videoId) {
+    if (!apiReady) return log('API not ready yet');
+    closePlayer();
+    stage.innerHTML = '<div id="yt"></div>';
+    player = new YT.Player('yt', {
+      width: '100%', height: '100%', videoId,
+      playerVars: {
+        autoplay: 1, rel: 0, iv_load_policy: 3, playsinline: 1,
+        controls: document.getElementById('controls').checked ? 1 : 0,
+        origin: location.origin,
+      },
+      events: {
+        onReady: (e) => { log('ready'); e.target.playVideo(); },
+        onStateChange: (e) => {
+          const names = {'-1':'unstarted',0:'ENDED',1:'playing',2:'PAUSED',3:'buffering',5:'cued'};
+          log(`state: ${names[e.data]}`);
+          const iframe = player.getIframe();
+          if (document.getElementById('hideOnPause').checked) {
+            iframe.style.visibility = (e.data === 2) ? 'hidden' : 'visible';
+          }
+          if (e.data === 0) { log('ended: removing player'); closePlayer(); }
+        },
+        onError: (e) => log(`ERROR ${e.data}`),
+      },
+    });
+  }
+
+  document.querySelectorAll('[data-vid]').forEach(b => b.onclick = () => play(b.dataset.vid));
+  document.getElementById('pp').onclick = () => player && (player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo());
+  document.getElementById('back').onclick = () => player && player.seekTo(player.getCurrentTime() - 10, true);
+  document.getElementById('fwd').onclick = () => player && player.seekTo(player.getCurrentTime() + 10, true);
+  document.getElementById('nearEnd').onclick = () => player && player.seekTo(player.getDuration() - 15, true);
+  document.getElementById('close').onclick = closePlayer;
+  setInterval(() => {
+    if (player && player.getCurrentTime) {
+      const t = player.getCurrentTime() | 0;
+      document.getElementById('time').textContent = `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
+    }
+  }, 500);
+</script>
+</body>
+</html>

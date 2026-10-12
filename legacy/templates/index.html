@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premier League Highlights</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .competition-select {
+            margin-bottom: 30px;
+        }
+        
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .show-all-row {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .show-all-checkbox {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #8892b0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .show-all-checkbox input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .competition-select select {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        
+        .competition-select select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #8892b0;
+            font-size: 14px;
+        }
+        
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .video-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .video-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .video-card.watched {
+            opacity: 0.6;
+        }
+        
+        .checkbox-wrapper {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .checkbox-label {
+            font-size: 11px;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .checkbox:checked {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+        
+        .checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: #1a1a2e;
+            font-size: 16px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .video-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .video-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+        
+        .video-timestamp {
+            font-size: 13px;
+            color: #8892b0;
+        }
+        
+        .watch-btn {
+            flex-shrink: 0;
+            background: #e63946;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .watch-btn:hover {
+            background: #ff4757;
+            transform: scale(1.05);
+        }
+        
+        .load-more-wrapper {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+        }
+        
+        .load-more-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .load-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .load-more-btn:disabled {
+            background: #4a4a5a;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .load-more-hint {
+            color: #8892b0;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 600px) {
+            .video-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .watch-btn {
+                width: 100%;
+                text-align: center;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">⚽</div>
+            <h1 id="pageTitle">Highlights</h1>
+            <div class="header-row">
+            <div class="competition-select">
+                <select id="competitionSelect" onchange="changeCompetition(this.value)" style="{{ 'display:none' if show_all }}">
+                    {% for comp in competitions_with_recent %}
+                    <option value="{{ comp }}" {% if comp == current_competition %}selected{% endif %}>{{ comp }}</option>
+                    {% endfor %}
+                </select>
+                <select id="allCompetitionsSelect" onchange="changeCompetition(this.value)" style="{{ '' if show_all else 'display:none' }}">
+                    {% for comp in competitions %}
+                    <option value="{{ comp }}" {% if comp == current_competition %}selected{% endif %}>{{ comp }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="show-all-row">
+            <label class="show-all-checkbox">
+                <input type="checkbox" id="showAllCheckbox" {{ 'checked' if show_all }} onchange="toggleShowAll()">
+                Include competitions with no recent highlights
+            </label>
+        </div>
+        </header>
+        
+        <div class="video-list" id="videoList">
+            {% for video in videos %}
+            <div class="video-card {% if video.watched %}watched{% endif %}" data-id="{{ video.videoId }}">
+                <div class="checkbox-wrapper">
+                    <span class="checkbox-label">Watched</span>
+                    <input type="checkbox" class="checkbox" 
+                           {% if video.watched %}checked{% endif %}
+                           onchange="toggleVideo('{{ video.videoId }}', this.checked)">
+                </div>
+                <div class="video-info">
+                    <div class="video-title">{{ video.title }}</div>
+                    <div class="video-timestamp">{{ video.timestamp }}</div>
+                </div>
+                <a href="https://www.youtube.com/watch?v={{ video.videoId }}" 
+                   target="_blank" class="watch-btn" 
+                   onclick="markWatched('{{ video.videoId }}')">▶ Watch</a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="load-more-wrapper">
+            <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreWeeks()">
+                ⬇ Load Previous Week
+            </button>
+            <p class="load-more-hint" id="loadHint">Click to load more highlights from earlier weeks</p>
+        </div>
+    </div>
+    
+    <script>
+        let weeksLoaded = 0;
+        
+        function changeCompetition(comp) {
+            weeksLoaded = 0;
+            const showAll = document.getElementById('showAllCheckbox').checked;
+            const url = `/?competition=${encodeURIComponent(comp)}&show_all=${showAll ? '1' : '0'}`;
+            window.location.href = url;
+        }
+        
+        function toggleShowAll() {
+            const showAll = document.getElementById('showAllCheckbox').checked;
+            const currentComp = document.getElementById('competitionSelect').value || 
+                                document.getElementById('allCompetitionsSelect').value;
+            const url = `/?competition=${encodeURIComponent(currentComp)}&show_all=${showAll ? '1' : '0'}`;
+            window.location.href = url;
+        }
+        
+        async function toggleVideo(videoId, watched) {
+            const card = document.querySelector(`.video-card[data-id="${videoId}"]`);
+            
+            try {
+                const response = await fetch('/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ videoId, watched })
+                });
+                
+                if (response.ok) {
+                    if (watched) {
+                        card.classList.add('watched');
+                    } else {
+                        card.classList.remove('watched');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.checked = !watched;
+            }
+        }
+        
+        async function markWatched(videoId) {
+            const card = document.querySelector(`.video-card[data-id="${videoId}"]`);
+            const checkbox = card.querySelector('.checkbox');
+            
+            if (!checkbox.checked) {
+                checkbox.checked = true;
+                await toggleVideo(videoId, true);
+            }
+        }
+        
+        async function loadMoreWeeks() {
+            const btn = document.getElementById('loadMoreBtn');
+            const videoList = document.getElementById('videoList');
+            // Use the visible dropdown's value
+            const showAll = document.getElementById('showAllCheckbox').checked;
+            const recentSelect = document.getElementById('competitionSelect');
+            const allSelect = document.getElementById('allCompetitionsSelect');
+            const competition = showAll ? allSelect.value : recentSelect.value;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span>Loading...';
+            
+            try {
+                weeksLoaded++;
+                const response = await fetch(`/load_more?weeks=${weeksLoaded}&competition=${encodeURIComponent(competition)}`);
+                const videos = await response.json();
+                
+                if (videos.length === 0) {
+                    btn.innerHTML = '✓ No More Videos';
+                    document.getElementById('loadHint').textContent = 'You\'ve reached the end of the archive';
+                } else {
+                    videos.forEach(video => {
+                        const card = document.createElement('div');
+                        card.className = 'video-card' + (video.watched ? ' watched' : '');
+                        card.dataset.id = video.videoId;
+                        card.innerHTML = `
+                            <div class="checkbox-wrapper">
+                                <span class="checkbox-label">Watched</span>
+                                <input type="checkbox" class="checkbox" 
+                                       ${video.watched ? 'checked' : ''}
+                                       onchange="toggleVideo('${video.videoId}', this.checked)">
+                            </div>
+                            <div class="video-info">
+                                <div class="video-title">${video.title}</div>
+                                <div class="video-timestamp">${video.timestamp}</div>
+                            </div>
+                            <a href="https://www.youtube.com/watch?v=${video.videoId}" 
+                               target="_blank" class="watch-btn"
+                               onclick="markWatched('${video.videoId}')">▶ Watch</a>
+                        `;
+                        videoList.appendChild(card);
+                    });
+                    
+                    btn.innerHTML = '⬇ Load Previous Week';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error loading more:', error);
+                btn.innerHTML = '⬇ Load Previous Week';
+                btn.disabled = false;
+                weeksLoaded--;
+            }
+        }
+    </script>
+</body>
+</html>

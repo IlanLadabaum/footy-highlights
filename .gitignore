@@ -1,0 +1,18 @@
+# Secrets
+.env
+
+# Legacy virtualenv and build artifacts (old .app bundles and .pyc files contain the old hardcoded API key)
+legacy/env_and_builds/
+
+# OS / editor
+.DS_Store
+.idea/
+__pycache__/
+
+# Swift / Xcode build output
+.build/
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+.swiftpm/
