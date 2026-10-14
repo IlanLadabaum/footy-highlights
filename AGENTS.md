@@ -33,6 +33,7 @@ Build agents: the approved v1 milestones are in [`Plan/Build Plan.md`](Plan/Buil
 ├── FootyHighlights/           # SwiftUI app (views, player)
 ├── FootyHighlightsTests/      # App-level tests
 ├── FootyKit/                  # Swift package: data layer + footy-cli + unit tests
+├── scripts/build-app.sh       # Release build (basis for the DMG); --install copies to /Applications
 ├── DEVIATIONS.md              # Agent decisions/deviations awaiting the developer's review
 ├── LICENSE                    # MIT
 ├── .env                       # Secrets (git-ignored) — YOUTUBE_API_KEY, FOOTBALL_DATA_API_KEY
@@ -59,6 +60,7 @@ While testing against live data you will see real scores and results. **Never pu
 - **Project generation:** `project.yml` (XcodeGen) is the source of truth for the Xcode project. After adding/removing app files or changing settings, run `xcodegen generate`. The generated `FootyHighlights.xcodeproj` is committed so people can build without XcodeGen.
 - **Layout:** app UI lives in `FootyHighlights/` (SwiftUI, macOS 14+). Everything that isn't UI (config, API clients, parsing, matching, rounds, standings, storage, keys) lives in the local Swift package `FootyKit/`, so it can be unit-tested with `swift test` and driven from the `footy-cli` tool.
 - **Build + test the app:** `xcodebuild -project FootyHighlights.xcodeproj -scheme FootyHighlights -destination 'platform=macOS' -derivedDataPath build/DerivedData test`
+- **Release app:** `scripts/build-app.sh` builds a universal (Apple Silicon + Intel), ad-hoc-signed Release app into `build/Release/`; `--install` also copies it to `/Applications`. This is the app that goes into the DMG (M5). The version comes from `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `project.yml`.
 - **Test the data layer (fast):** `swift test --package-path FootyKit`
 - **Live-data check:** `swift run --package-path FootyKit footy-cli` (reads `.env`; prints counts only, never titles or scores).
 - **Debug tools (Debug builds only):** `"build/DerivedData/Build/Products/Debug/Footy Highlights.app/Contents/MacOS/Footy Highlights" --snapshot <dir> --seed FootyKit/Tests/FootyKitTests/Fixtures` renders the screens to PNGs from last season's data (no live spoilers, no screen-recording permission needed). `--player-test` plays one highlight per channel **muted** offscreen and prints player states only. Never screenshot a playing video: the broadcast graphics show the score.

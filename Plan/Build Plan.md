@@ -69,6 +69,7 @@
 - [BUILT] 2026-10-12: pre-round table, reveal checkbox, hover highlight, per-league tiebreakers, UCL league-phase table, full-width cups/knockouts. Done-when met by unit test (PL 2025-26 before MW11 = official table). Point deductions: detected but not applied, pending the developer ([OPEN] above).
 
 ### M5 — Polish and release
+- [BUILT] 2026-10-13 (groundwork, at the user's request): `scripts/build-app.sh` builds the universal, ad-hoc-signed Release app that the DMG will contain, and `--install` puts it in `/Applications`. Version 0.1.0.
 - App icon, README install/run instructions, screenshots (spoiler-free!).
 - [DECIDED] **GitHub repo: private for now** (`IlanLadabaum/footy-highlights`, created 2026-10-13). **It's made public only once the DMG and update checking below are done.** *(user, 2026-10-13)*
 - [DECIDED] **"Check for updates" built into the app**, needed **before going public**. *(user, 2026-10-13)* [OPEN] Design: e.g. compare the app version with the latest GitHub Release and offer to download the new DMG, or use the Sparkle framework (needs signing keys for its update feed); automatic check on launch vs a menu item; how unsigned-app updates get approved again in Privacy & Security.

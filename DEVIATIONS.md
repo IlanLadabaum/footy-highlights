@@ -78,3 +78,8 @@ Run: overnight build of M0–M4, started 2026-10-11.
 ### "Update table with all scores from this matchweek" (2026-10-12)
 - **D44. It asks for confirmation first** ("Show all N scores from Matchweek 7?"), since one click shows every score in the round. This matters most in the player's table panel, mid-video. It uses the same flag as the per-match checkbox, so the rows show their scores too.
 - **D45. Once everything is revealed, the button becomes "Hide this matchweek's scores again"**, which un-reveals the whole round. The wording follows the competition: "matchweek" (Premier League), "matchday" (other leagues), "round" (UCL).
+
+### Release app packaging (2026-10-13)
+- **D46. The Release app is a universal binary** (Apple Silicon + Intel), so the future DMG works on both kinds of Mac. It's ad-hoc signed (no Developer ID), as decided for distribution.
+- **D47. The installed Release app doesn't read `.env`** (Debug-only, as decided), so on first launch it shows the setup screen and keys go into the Keychain. It shares its local database (watched/revealed flags, cached data) and queue with Debug builds, because both have the same bundle ID.
+- **D48. The app version now comes from `project.yml`** (`MARKETING_VERSION` 0.1.0, build 1). Previously Info.plist had a fixed "1.0". The future update checker will compare against this.

@@ -25,6 +25,8 @@ targets:
       path: FootyHighlights/Info.plist
       properties:
         CFBundleDisplayName: Footy Highlights
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.sports
         # Debug builds read .env from the project folder (developer convenience).
         FHProjectDir: $(FH_PROJECT_DIR)
