@@ -99,6 +99,17 @@
 - [DECIDED] **API keys are entered and edited in the app's Settings.** *(user, 2026-10-11)* Settings links to where each key is obtained: [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials) / the YouTube Data API v3 page for the YouTube key, and [football-data.org registration](https://www.football-data.org/client/register) for the fixture key. Ideally also a link to the README's step-by-step guide.
 - [DECIDED] Keys are stored in the macOS/iPadOS Keychain. `.env` is only a developer convenience: a user who downloads the app has no project folder, and an iPad has no `.env`. The README key guides will point to Settings once the app exists.
   - [DECIDED] Developer builds also read `.env`, for convenience.
+- [DECIDED] **Validate keys when they're entered** *(user, 2026-10-13; not built yet)*. Today keys are saved unchecked, and a bad key only shows up later as a small ⚠️ in the toolbar.
+  - On Save (Settings) or Continue (first-launch setup), test the key with one cheap request: YouTube, a 1-unit Data API call; football-data, 1 request through the normal throttle.
+  - Show the result right under the field:
+    - ✓ "Key works"
+    - ✗ "Key not recognised (check for extra spaces)"
+    - ✗ "YouTube Data API v3 isn't enabled for this key's project", with a link to enable it (`accessNotConfigured`)
+    - ✗ "Quota used up for today"
+    - ✗ "football-data rejected this token"
+    - "Couldn't reach YouTube / football-data", in which case the key is saved and checked again on the next refresh
+  - A rejected key isn't saved. The setup screen won't continue until the YouTube key passes (or the check couldn't run because of the network).
+  - Later refresh errors keep using the same plain-language messages, including `accessNotConfigured`, which currently shows as a raw "request failed (403, …)".
 
 ## Optional features when not configured
 
