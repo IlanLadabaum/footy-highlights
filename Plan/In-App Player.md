@@ -16,6 +16,7 @@ Sources: [Developer Policies](https://developers.google.com/youtube/terms/develo
 | Overlaying app UI on the player | **Forbidden** | RMF: no "overlays, frames, or other visual elements in front of any part of a YouTube embedded player" |
 | Injecting CSS/JS into the player to hide elements | **Forbidden** | RMF: no changes "not explicitly described by the API documentation"; DP III.I.6 |
 | Downloading with yt-dlp and playing natively | **Forbidden** | DP III.E.1.a (no downloading/caching of audiovisual content) |
+| Offline downloads for watching later (user request, 2026-10-13) | **Forbidden, declined** | DP III.E.1.a. Only YouTube's own apps (Premium) may download |
 | `pointer-events:none` on the iframe (blocks hover reveals) | **Likely forbidden** | DP III.I.6 "block any portion or functionality". Not used. |
 | `controls=0` plus our own controls placed *outside* the player | Allowed | Documented parameter |
 | Creating the player only after our own Play button, then autoplaying | Allowed | RMF allows autoplay once the player is visible |

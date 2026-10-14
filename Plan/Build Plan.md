@@ -70,7 +70,8 @@
 
 ### M5 — Polish and release
 - App icon, README install/run instructions, screenshots (spoiler-free!).
-- GitHub repo (public).
+- [DECIDED] **GitHub repo: private for now** (`IlanLadabaum/footy-highlights`, created 2026-10-13). **It's made public only once the DMG and update checking below are done.** *(user, 2026-10-13)*
+- [DECIDED] **"Check for updates" built into the app**, needed **before going public**. *(user, 2026-10-13)* [OPEN] Design: e.g. compare the app version with the latest GitHub Release and offer to download the new DMG, or use the Sparkle framework (needs signing keys for its update feed); automatic check on launch vs a menu item; how unsigned-app updates get approved again in Privacy & Security.
 - [DECIDED] **Distribution: an unsigned `.dmg` on GitHub Releases**, with no paid developer account. Users approve it manually under System Settings → Privacy & Security → "Open Anyway". The README must explain this step. *(user, 2026-10-11)*
   - Note: Apple Silicon requires at least ad-hoc code signing, which Xcode applies automatically. It's not the same as Developer ID notarization.
 
