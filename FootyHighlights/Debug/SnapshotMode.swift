@@ -43,6 +43,13 @@
             })))
             // Queue popover content with a few seeded matches.
             for entry in library.competition("PL")?.rounds.first?.matches.prefix(4) ?? [] { model.enqueue(entry) }
+            if let pl = library.competition("PL"), let round = pl.rounds.first(where: { $0.layout == .withTable }),
+                let team = round.matches.compactMap(\.fixture).first?.home
+            {
+                screens.append(("8-team-results", AnyView(TeamResultsBox(team: team, round: round, close: {}))))
+            }
+            screens.append(("9-leagues-first-launch", AnyView(FirstLeagueChoiceSheet())))
+            screens.append(("9-leagues-picker", AnyView(LeaguePickerSheet())))
             screens.append(("6-queue", AnyView(QueueView(close: {}).frame(height: 400))))
             screens.append((
                 "7-start-queue-button",

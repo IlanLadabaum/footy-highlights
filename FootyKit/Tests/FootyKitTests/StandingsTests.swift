@@ -88,3 +88,33 @@ struct StandingsTests {
         #expect(table.allSatisfy { $0.played == 8 })
     }
 }
+
+struct TeamResultsTests {
+    @Test func onlyResultsTheTableCountsNewestFirst() {
+        let a = TestData.team(1, "Alpha"), b = TestData.team(2, "Bravo"), c = TestData.team(3, "Charlie")
+        let fixtures = [
+            TestData.fixture(1, a, b, "2025-08-16T14:00:00Z", score: (2, 0)),
+            TestData.fixture(2, c, a, "2025-08-23T14:00:00Z", score: (1, 1)),
+            TestData.fixture(3, a, c, "2025-08-30T14:00:00Z", score: (0, 3)),  // this round
+            TestData.fixture(4, b, a, "2025-09-06T14:00:00Z", score: (0, 1)),  // later round
+            TestData.fixture(5, b, c, "2025-08-16T14:00:00Z", score: (1, 0)),  // not Alpha
+        ]
+        let cutoff = TestData.date("2025-08-30T14:00:00Z")
+        let before = TeamResults.results(for: 1, in: fixtures, before: cutoff)
+        #expect(before.map(\.id) == [2, 1])
+        let revealed = TeamResults.results(for: 1, in: fixtures, before: cutoff, applying: [3])
+        #expect(revealed.map(\.id) == [3, 2, 1])
+        #expect(TeamResults.outcome(of: fixtures[0], for: 1) == .win)
+        #expect(TeamResults.outcome(of: fixtures[1], for: 1) == .draw)
+        #expect(TeamResults.outcome(of: fixtures[2], for: 1) == .loss)
+        #expect(TeamResults.outcome(of: fixtures[2], for: 3) == .win)
+    }
+
+    @Test func shootoutWinnerCountsAsWin() {
+        let a = TestData.team(1, "Alpha"), b = TestData.team(2, "Bravo")
+        var fixture = TestData.fixture(1, a, b, "2025-08-16T14:00:00Z", stage: "LAST_16", score: (1, 1))
+        fixture.score = MatchScore(goals: ScorePair(home: 1, away: 1), penalties: ScorePair(home: 3, away: 4), duration: .penaltyShootout)
+        #expect(TeamResults.outcome(of: fixture, for: 2) == .win)
+        #expect(TeamResults.outcome(of: fixture, for: 1) == .loss)
+    }
+}

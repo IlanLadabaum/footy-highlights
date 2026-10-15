@@ -83,3 +83,9 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D46. The Release app is a universal binary** (Apple Silicon + Intel), so the future DMG works on both kinds of Mac. It's ad-hoc signed (no Developer ID), as decided for distribution.
 - **D47. The installed Release app doesn't read `.env`** (Debug-only, as decided), so on first launch it shows the setup screen and keys go into the Keychain. It shares its local database (watched/revealed flags, cached data) and queue with Debug builds, because both have the same bundle ID.
 - **D48. The app version now comes from `project.yml`** (`MARKETING_VERSION` 0.1.0, build 1). Previously Info.plist had a fixed "1.0". The future update checker will compare against this.
+
+### Add/remove leagues and team results (2026-10-14)
+- **D49. The first-launch league picker starts with nothing selected**, and Continue stays disabled until at least one league is picked ("Select all" is one click). Existing installs see the same sheet once, on their next launch, because no choice has been saved yet.
+- **D50. Turning a league off stops fetching its football-data fixtures and any YouTube channel used only by that league.** A channel shared with a followed league (CBS for UCL, Serie A and Carabao Cup) is still scanned, since one scan covers all three; the turned-off league is simply hidden. Turning a league on triggers an immediate refresh, ignoring the 15-minute rule.
+- **D51. The "Add/remove leagues" button sits at the top-left of the home page toolbar.** The sheet and the Settings → Leagues tab apply changes immediately, and each league shows its source channel underneath.
+- **D52. Team results box:** opens when you click anywhere on a team's table row, as a popover next to the row. Close with ✕, Esc or by clicking outside. The title reads "<Team>: results before <round>". The selected team is shown in bold. About 8 lines are visible before scrolling. A shoot-out win counts as a win (green).

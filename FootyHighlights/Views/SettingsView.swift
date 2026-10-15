@@ -6,6 +6,8 @@ struct SettingsView: View {
         TabView {
             KeysSettings()
                 .tabItem { Label("API Keys", systemImage: "key") }
+            LeagueSettings()
+                .tabItem { Label("Leagues", systemImage: "soccerball") }
             AdvancedSettings()
                 .tabItem { Label("Advanced", systemImage: "gearshape.2") }
         }

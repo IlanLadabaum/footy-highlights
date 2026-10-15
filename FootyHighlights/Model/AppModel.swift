@@ -20,6 +20,9 @@ final class AppModel {
     /// Highlights waiting to play, in order. Persisted between launches.
     private(set) var queue: [MatchKey] = []
     private static let queueDefaultsKey = "queue"
+    /// Competition IDs the user follows; nil until they've chosen (first launch asks).
+    private(set) var enabledLeagues: Set<String>?
+    private static let leaguesDefaultsKey = "enabledLeagues"
 
     private(set) var library = Library.empty
     private(set) var keys = APIKeys(youTube: nil, footballData: nil)
@@ -54,6 +57,7 @@ final class AppModel {
         builder = LibraryBuilder(config: config)
         reloadKeys()
         lastRefresh = refresher.lastRefresh
+        enabledLeagues = defaults.stringArray(forKey: Self.leaguesDefaultsKey).map(Set.init)
         queue = (defaults.stringArray(forKey: Self.queueDefaultsKey) ?? []).compactMap(MatchKey.init(string:))
         rebuild()
     }
@@ -70,7 +74,7 @@ final class AppModel {
         isRefreshing = true
         upToDateNotice = false
         defer { isRefreshing = false }
-        let report = await refresher.refresh(keys: keys, force: force)
+        let report = await refresher.refresh(keys: keys, enabled: enabledLeagues, force: force)
         if report.skipped {
             upToDateNotice = true
         } else {
@@ -137,6 +141,29 @@ final class AppModel {
     func restore(_ previous: [MatchKey: MatchFlags]) {
         store.restoreFlags(previous)
         rebuild()
+    }
+
+    // MARK: Leagues
+
+    var needsLeagueChoice: Bool { enabledLeagues == nil }
+
+    func isEnabled(_ competitionId: String) -> Bool { enabledLeagues?.contains(competitionId) ?? true }
+
+    /// Home page competitions: only followed leagues.
+    var visibleCompetitions: [CompetitionSummary] { library.competitions.filter { isEnabled($0.id) } }
+
+    /// Turning a league off stops fetching it; turning one on fetches it straight away.
+    func setLeagues(_ ids: Set<String>) {
+        let added = !ids.subtracting(enabledLeagues ?? []).isEmpty || enabledLeagues == nil
+        enabledLeagues = ids
+        defaults.set(Array(ids).sorted(), forKey: Self.leaguesDefaultsKey)
+        if added, hasYouTubeKey { Task { await refresh(force: true) } }
+    }
+
+    func setLeague(_ competitionId: String, enabled: Bool) {
+        var ids = enabledLeagues ?? Set(config.competitions.map(\.id))
+        if enabled { ids.insert(competitionId) } else { ids.remove(competitionId) }
+        setLeagues(ids)
     }
 
     // MARK: Queue
@@ -240,6 +267,16 @@ final class AppModel {
         }
         let applied = revealed.filter { id in fixtures.contains { $0.id == id && $0.utcDate >= cutoff && $0.status.isFinal } }
         return RoundTable(rows: rows, revealedCount: applied.count, deductionNotes: notes)
+    }
+
+    /// A team's previous results in this round's competition: only what the round's table counts. Newest first.
+    func teamResults(_ teamId: Int, round: Round) -> [Fixture] {
+        guard let cutoff = round.earliestKickoff,
+            let season = round.matches.compactMap(\.fixture).first?.season
+        else { return [] }
+        let fixtures = (library.fixturesByCompetition[round.id.competitionId] ?? []).filter { $0.season == season }
+        let revealed = Set(round.matches.filter { $0.flags.revealed }.compactMap(\.fixture?.id))
+        return TeamResults.results(for: teamId, in: fixtures, before: cutoff, applying: revealed)
     }
 
     func displayName(_ team: Team) -> String {

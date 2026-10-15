@@ -40,18 +40,22 @@ public final class Refresher {
 
     public var lastRefresh: Date? { store.syncDate("refresh") }
 
-    public func refresh(keys: APIKeys, force: Bool = false, now: Date = Date()) async -> RefreshReport {
+    /// `enabled`: competition IDs the user follows. Others aren't fetched at all (nil = all).
+    public func refresh(keys: APIKeys, enabled: Set<String>? = nil, force: Bool = false, now: Date = Date()) async
+        -> RefreshReport
+    {
         var report = RefreshReport()
+        let competitions = config.competitionsByPriority.filter { enabled?.contains($0.id) ?? true }
         if !force, let last = lastRefresh, now.timeIntervalSince(last) < Self.minimumInterval {
             report.skipped = true
             return report
         }
         let season = Season.year(containing: now)
         if let key = keys.footballData, !key.isEmpty {
-            await refreshFixtures(key: key, season: season, now: now, report: &report)
+            await refreshFixtures(key: key, competitions: competitions, season: season, now: now, report: &report)
         }
         if let key = keys.youTube, !key.isEmpty {
-            await refreshVideos(key: key, season: season, now: now, report: &report)
+            await refreshVideos(key: key, competitions: competitions, season: season, now: now, report: &report)
         } else {
             report.errors.append("Add a YouTube API key in Settings to find highlights.")
         }
@@ -64,10 +68,12 @@ public final class Refresher {
 
     // MARK: football-data
 
-    func refreshFixtures(key: String, season: Int, now: Date, report: inout RefreshReport) async {
+    func refreshFixtures(
+        key: String, competitions: [CompetitionConfig], season: Int, now: Date, report: inout RefreshReport
+    ) async {
         let client = FootballDataClient(apiKey: key, throttle: throttle, http: http)
         let existing = Dictionary(grouping: store.fixtures(), by: \.competitionId)
-        for competition in config.competitionsByPriority {
+        for competition in competitions {
             guard let code = competition.footballDataCode else { continue }
             let syncKey = "fd:\(code):\(season)"
             let last = store.syncDate(syncKey)
@@ -114,9 +120,13 @@ public final class Refresher {
 
     // MARK: YouTube
 
-    func refreshVideos(key: String, season: Int, now: Date, report: inout RefreshReport) async {
+    func refreshVideos(
+        key: String, competitions: [CompetitionConfig], season: Int, now: Date, report: inout RefreshReport
+    ) async {
         let client = YouTubeClient(apiKey: key, http: http)
-        let channelKeys = Set(config.competitions.flatMap { $0.sources.map(\.channel) }).sorted()
+        // Only channels used by followed competitions. A channel shared with a followed one (CBS) is still
+        // scanned in full; the others' videos are simply not shown.
+        let channelKeys = Set(competitions.flatMap { $0.sources.map(\.channel) }).sorted()
         let cutoff = Season.scanCutoff(forSeason: season)
         let known = Set(store.videos().map(\.id))
         for channelKey in channelKeys {

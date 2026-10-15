@@ -9,6 +9,8 @@ struct LeagueTableView: View {
     let highlighted: Set<Int>
     @Environment(AppModel.self) private var model
     @State private var confirmRevealAll = false
+    /// Team whose previous results box is open.
+    @State private var selectedTeam: Int?
 
     var body: some View {
         if let table = model.table(for: round) {
@@ -20,6 +22,17 @@ struct LeagueTableView: View {
                         ForEach(table.rows) { row in
                             TableRowView(row: row, name: model.displayName(row.team), isHighlighted: highlighted.contains(row.id))
                                 .id(row.id)
+                                .contentShape(Rectangle())
+                                .onTapGesture { selectedTeam = row.id }
+                                .help("Show \(model.displayName(row.team))'s previous results")
+                                .popover(
+                                    isPresented: Binding(
+                                        get: { selectedTeam == row.id }, set: { if !$0 { selectedTeam = nil } }),
+                                    arrowEdge: .leading
+                                ) {
+                                    TeamResultsBox(team: row.team, round: round) { selectedTeam = nil }
+                                        .environment(model)
+                                }
                         }
                         ForEach(table.deductionNotes, id: \.self) { note in
                             Text(note).font(.caption2).foregroundStyle(.secondary).padding(.horizontal, 12).padding(.top, 6)

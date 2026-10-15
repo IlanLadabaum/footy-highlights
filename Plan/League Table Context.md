@@ -8,7 +8,7 @@
 - [DECIDED] **(v1) "Show score & update table" checkbox** *(user, 2026-10-11)* per match, next to the "watched" checkbox. Ticking it reveals that match's score and applies the result to the displayed table. The table then reflects exactly the matches the user has chosen to reveal.
 - [DECIDED] **(v1) Hover highlighting** *(user, 2026-10-11)*: hovering over a match in the list highlights both teams' rows in the table.
 - [DECIDED] **"Update table with all scores from this matchweek"** *(user, 2026-10-12)*: a button at the top of the table viewer that reveals every finished match in the round at once and applies them all to the table (the same as ticking every "Show score & update table" box).
-- [DECIDED] **Browse a team's previous results** *(user, 2026-10-14; not built yet)*. Same context as the table: how a team has been doing coming into the round.
+- [DECIDED] **Browse a team's previous results** *(user, 2026-10-14; built 2026-10-14)*. Same context as the table: how a team has been doing coming into the round.
   - [DECIDED] UI *(user, 2026-10-14)*: **click a team in the table** to open a small box listing its previous results. The box has an **✕** to close it. This works anywhere the table appears: the round screen and the player's table panel.
   - [DECIDED] Each line reads **`<date>  <Home team> v <Away team>  [score]`**. The **score sits in a colour-coded box**, green (the selected team won), yellow/gold (draw), red (lost), from that team's point of view. This replaces a separate W/D/L marker and also shows home/away. *(user, 2026-10-14)*
   - [DECIDED] **Newest first.** *(user, 2026-10-14)*

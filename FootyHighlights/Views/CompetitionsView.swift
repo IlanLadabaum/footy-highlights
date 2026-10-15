@@ -7,6 +7,7 @@ struct CompetitionsView: View {
     @Environment(\.undoManager) private var undoManager
     @State private var confirmMarkAll: CompetitionSummary?
     @State private var undo = UndoState()
+    @State private var showLeaguePicker = false
 
     private let columns = [GridItem(.adaptive(minimum: 240), spacing: 16)]
 
@@ -16,14 +17,32 @@ struct CompetitionsView: View {
                 if let error = model.storeError {
                     Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
                 }
-                section("New stuff to watch", model.library.newStuff, emptyText: "You're all caught up.")
-                section("Nothing new", model.library.nothingNew, emptyText: nil)
+                let visible = model.visibleCompetitions
+                if visible.isEmpty, !model.needsLeagueChoice {
+                    Text("No leagues selected. Use “Add/remove leagues” to choose some.").foregroundStyle(.secondary)
+                } else {
+                    section("New stuff to watch", visible.filter { $0.unwatchedCount > 0 }, emptyText: "You're all caught up.")
+                    section("Nothing new", visible.filter { $0.unwatchedCount == 0 }, emptyText: nil)
+                }
             }
             .padding(24)
             .padding(.bottom, 60)  // room for the floating Start queue button
         }
         .navigationTitle("Footy Highlights")
-        .toolbar { RefreshToolbar() }
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    showLeaguePicker = true
+                } label: {
+                    Label("Add/remove leagues", systemImage: "slider.horizontal.3")
+                        .labelStyle(.titleAndIcon)
+                }
+                .help("Choose which leagues appear here")
+            }
+            RefreshToolbar()
+        }
+        .sheet(isPresented: $showLeaguePicker) { LeaguePickerSheet().environment(model) }
+        .sheet(isPresented: .constant(model.needsLeagueChoice)) { FirstLeagueChoiceSheet().environment(model) }
         .overlay(alignment: .bottom) {
             if let message = undo.message {
                 UndoBanner(message: message, undo: { undo.undo(model: model) }, dismiss: { undo.message = nil })
