@@ -10,13 +10,13 @@
 - [DECIDED] **"Update table with all scores from this matchweek"** *(user, 2026-10-12)*: a button at the top of the table viewer that reveals every finished match in the round at once and applies them all to the table (the same as ticking every "Show score & update table" box).
 - [DECIDED] **Browse a team's previous results** *(user, 2026-10-14; not built yet)*. Same context as the table: how a team has been doing coming into the round.
   - [DECIDED] UI *(user, 2026-10-14)*: **click a team in the table** to open a small box listing its previous results. The box has an **✕** to close it. This works anywhere the table appears: the round screen and the player's table panel.
-  - [DECIDED] Each line shows **date, opponent, score and W/D/L**, colour-coded **green (W), yellow/gold (D), red (L)**. *(user, 2026-10-14)*
+  - [DECIDED] Each line reads **`<date>  <Home team> v <Away team>  [score]`**. The **score sits in a colour-coded box**, green (the selected team won), yellow/gold (draw), red (lost), from that team's point of view. This replaces a separate W/D/L marker and also shows home/away. *(user, 2026-10-14)*
+  - [DECIDED] **Newest first.** *(user, 2026-10-14)*
   - [DECIDED] **All of the season's results in this competition**, in a smallish window showing about **5–10 results at a time; scroll within the box** for more. *(user, 2026-10-14)*
   - [DECIDED] **This competition only** for now. *(user, 2026-10-14)*
   - [DECIDED] **No links to highlights** from the box for now. *(user, 2026-10-14)*
   - [DECIDED] **Unwatched results are not hidden.** The table already counts them. *(user, 2026-10-14)*
   - [DECIDED] Spoiler rule (follows from the table's rules): show only results the pre-round table already counts, i.e. kickoff before the round's cut-off, plus matches the user has revealed in this round. Never results from this round or later that haven't been revealed.
-  - [OPEN] Minor details for build time: newest-first or oldest-first ordering (agent suggestion: newest first); whether home/away is shown (e.g. "v Arsenal" / "at Arsenal").
 - These also settle the "manual reveal" question in [Spoiler Protection](Spoiler%20Protection.md).
 
 ## How to build the table
