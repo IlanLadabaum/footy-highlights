@@ -53,23 +53,35 @@ While testing against live data you will see real scores and results. **Never pu
 ## Secrets
 
 - API keys go in `.env` only (git-ignored); document new keys in `.env.example`, and add setup steps for any new key to `README.md`.
+
 - Never hardcode keys in source, plan docs or commit messages.
 
 ## Code style, build, test
 
 - **Project generation:** `project.yml` (XcodeGen) is the source of truth for the Xcode project. After adding/removing app files or changing settings, run `xcodegen generate`. The generated `FootyHighlights.xcodeproj` is committed so people can build without XcodeGen.
+
 - **Layout:** app UI lives in `FootyHighlights/` (SwiftUI, macOS 14+). Everything that isn't UI (config, API clients, parsing, matching, rounds, standings, storage, keys) lives in the local Swift package `FootyKit/`, so it can be unit-tested with `swift test` and driven from the `footy-cli` tool.
+
 - **Build + test the app:** `xcodebuild -project FootyHighlights.xcodeproj -scheme FootyHighlights -destination 'platform=macOS' -derivedDataPath build/DerivedData test`
+
 - **Release app:** `scripts/build-app.sh` builds a universal (Apple Silicon + Intel), ad-hoc-signed Release app into `build/Release/`; `--install` also copies it to `/Applications`. This is the app that goes into the DMG (M5). The version comes from `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `project.yml`.
+
 - **Test the data layer (fast):** `swift test --package-path FootyKit`
+
 - **Live-data check:** `swift run --package-path FootyKit footy-cli` (reads `.env`; prints counts only, never titles or scores).
+
 - **Debug tools (Debug builds only):** `"build/DerivedData/Build/Products/Debug/Footy Highlights.app/Contents/MacOS/Footy Highlights" --snapshot <dir> --seed FootyKit/Tests/FootyKitTests/Fixtures` renders the screens to PNGs from last season's data (no live spoilers, no screen-recording permission needed). `--player-test` plays one highlight per channel **muted** offscreen and prints player states only. Never screenshot a playing video: the broadcast graphics show the score.
+
 - **Lint / format:** `swiftlint lint` and `xcrun swift-format lint -r FootyHighlights FootyKit/Sources FootyKit/Tests` (format in place with `xcrun swift-format format -i -r …`). Configs: `.swiftlint.yml`, `.swift-format`.
+
 - **Style:** Swift 6 language mode; 4-space indent; 120-col lines. Keep views thin and logic in FootyKit. Pure value types for domain logic; SwiftData only in the store layer.
+
 - **Test fixtures** with real titles come from past seasons (or are synthetic) so they carry no current-season spoilers.
 
 ## Git conventions
 
 - Commit messages: imperative mood, first line under 72 chars.
+
 - Keep commits focused on a single change; test before committing.
+
 - This folder is its own git repo (branch `main`). Only commit when the developer asks.

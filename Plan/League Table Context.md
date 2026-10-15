@@ -8,6 +8,15 @@
 - [DECIDED] **(v1) "Show score & update table" checkbox** *(user, 2026-10-11)* per match, next to the "watched" checkbox. Ticking it reveals that match's score and applies the result to the displayed table. The table then reflects exactly the matches the user has chosen to reveal.
 - [DECIDED] **(v1) Hover highlighting** *(user, 2026-10-11)*: hovering over a match in the list highlights both teams' rows in the table.
 - [DECIDED] **"Update table with all scores from this matchweek"** *(user, 2026-10-12)*: a button at the top of the table viewer that reveals every finished match in the round at once and applies them all to the table (the same as ticking every "Show score & update table" box).
+- [DECIDED] **Browse a team's previous results** *(user, 2026-10-14; not built yet)*. Same context as the table: how a team has been doing coming into the round.
+  - [PROPOSED] UI (the user's suggestion): **click a team in the table** and a small popover lists its previous results. This works anywhere the table appears: the round screen and the player's table panel.
+  - [DECIDED] Spoiler rule (follows from the table's rules): show only results the pre-round table already counts, i.e. kickoff before the round's cut-off, plus matches the user has revealed in this round. Never results from this round or later that haven't been revealed.
+  - [OPEN] Details to settle when it's built:
+    - What each line shows: date, opponent, home/away, score, a W/D/L marker.
+    - How many results: all season, or the last N.
+    - This competition only, or every competition the app has data for (e.g. a Premier League team's UCL results). Cross-competition needs care, because another competition's "before" cut-off differs.
+    - Whether each past result links to its highlight (play or queue from the popover).
+    - Whether rows the user hasn't watched should hide their score (the table already shows them, so probably not).
 - These also settle the "manual reveal" question in [Spoiler Protection](Spoiler%20Protection.md).
 
 ## How to build the table
