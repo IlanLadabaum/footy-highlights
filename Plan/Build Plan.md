@@ -75,6 +75,12 @@
 - [DECIDED] **"Check for updates" built into the app**, needed **before going public**. *(user, 2026-10-13)* [OPEN] Design: e.g. compare the app version with the latest GitHub Release and offer to download the new DMG, or use the Sparkle framework (needs signing keys for its update feed); automatic check on launch vs a menu item; how unsigned-app updates get approved again in Privacy & Security.
 - [DECIDED] **Distribution: an unsigned `.dmg` on GitHub Releases**, with no paid developer account. Users approve it manually under System Settings → Privacy & Security → "Open Anyway". The README must explain this step. *(user, 2026-10-11)*
   - Note: Apple Silicon requires at least ad-hoc code signing, which Xcode applies automatically. It's not the same as Developer ID notarization.
+- [DECIDED] **Sign every build with a self-signed code-signing certificate** (free, no paid account) *(user, 2026-10-15; not done yet, do before the first DMG)*.
+  - Why: ad-hoc signing identifies the app only by a hash of that exact build, so macOS's "Always Allow" for the Keychain prompt is lost after every rebuild or update. Found 2026-10-15; the repeated prompts within one launch were a separate bug, fixed the same day.
+  - A stable self-signed identity makes each new version count as the same app, so Keychain access survives updates for the developer and for users.
+  - Gatekeeper still treats it as an unidentified developer, so the README's "Open Anyway" step remains.
+  - To do: create the certificate (Keychain Access → Certificate Assistant, or `openssl` + `security import`, with the developer's OK since it changes their login keychain). Set `CODE_SIGN_IDENTITY` to it in `project.yml` and `scripts/build-app.sh`. Keep a secure backup of the private key: losing it means every user approves again once.
+  - Later: if releases are built in CI, the certificate goes into CI secrets.
 
 ## Progress
 
