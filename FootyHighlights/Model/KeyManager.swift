@@ -26,6 +26,11 @@ struct KeyManager {
         #endif
     }
 
+    /// Keychain values read this launch. Each Keychain read of an ad-hoc-signed app can show a macOS
+    /// permission prompt, so each key is read at most once per launch and then kept in memory.
+    @MainActor private static var keychainCache: [APIKeyKind: String?] = [:]
+
+    @MainActor
     func load() -> (keys: APIKeys, sources: [APIKeyKind: KeySource]) {
         let env = envURL.map(EnvFile.keys(from:)) ?? APIKeys(youTube: nil, footballData: nil)
         var sources: [APIKeyKind: KeySource] = [:]
@@ -34,7 +39,14 @@ struct KeyManager {
                 sources[kind] = .envFile
                 return fromEnv
             }
-            if let stored = keychain.read(kind) {
+            let stored: String?
+            if let cached = Self.keychainCache[kind] {
+                stored = cached
+            } else {
+                stored = keychain.read(kind)
+                Self.keychainCache[kind] = stored
+            }
+            if let stored {
                 sources[kind] = .keychain
                 return stored
             }
@@ -45,8 +57,11 @@ struct KeyManager {
         return (keys, sources)
     }
 
-    @discardableResult
+    @MainActor @discardableResult
     func save(_ kind: APIKeyKind, value: String) -> Bool {
-        keychain.write(kind, value: value)
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let ok = keychain.write(kind, value: trimmed)
+        if ok { Self.keychainCache[kind] = trimmed.isEmpty ? .some(nil) : trimmed }
+        return ok
     }
 }

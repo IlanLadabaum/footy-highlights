@@ -2,7 +2,8 @@ import SwiftUI
 
 @main
 struct FootyHighlightsApp: App {
-    @State private var model = AppModel()
+    // One shared model: SwiftUI may build the App value more than once, and each model reads the Keychain.
+    @State private var model = AppModel.shared
 
     init() {
         #if DEBUG && os(macOS)

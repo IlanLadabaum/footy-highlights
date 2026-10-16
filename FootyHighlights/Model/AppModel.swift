@@ -12,6 +12,9 @@ final class AppModel {
     private let builder: LibraryBuilder
     private let keyManager = KeyManager()
 
+    /// The app's single model (the App struct can be re-created; this can't).
+    static let shared = AppModel()
+
     /// Off in the developer snapshot/test modes, so the main window doesn't refresh alongside them.
     static var automaticRefresh = true
 
