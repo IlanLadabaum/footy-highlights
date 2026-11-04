@@ -469,7 +469,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.ilanladabaum.footyhighlights;
 				PRODUCT_NAME = "Footy Highlights";
 				SDKROOT = auto;
-				SPARKLE_PUBLIC_ED_KEY = "";
+				SPARKLE_PUBLIC_ED_KEY = "rze94nLOqJ0IAZYcyWTme6fjul47qZMgYjwQfXP7Nak=";
 				SUPPORTED_PLATFORMS = macosx;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -518,7 +518,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.ilanladabaum.footyhighlights;
 				PRODUCT_NAME = "Footy Highlights";
 				SDKROOT = auto;
-				SPARKLE_PUBLIC_ED_KEY = "";
+				SPARKLE_PUBLIC_ED_KEY = "rze94nLOqJ0IAZYcyWTme6fjul47qZMgYjwQfXP7Nak=";
 				SUPPORTED_PLATFORMS = macosx;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
