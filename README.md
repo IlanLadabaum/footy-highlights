@@ -4,11 +4,37 @@ A free, open-source macOS app for catching up on football match highlights **wit
 
 It finds official highlight videos that broadcasters post on YouTube and lists them under neutral titles (e.g. *Arsenal v Leeds United · Premier League · Matchweek 7*). It never shows the original video title, thumbnail, description or suggested videos, all of which often give the score away. Videos play inside the app in YouTube's official embedded player, created only when you press play and showing as little of YouTube's interface as YouTube's terms allow.
 
-> **Status:** the app is being rewritten from scratch and is currently in the planning stage. Install and run instructions will be added once it is built. The design is documented in [`Plan/`](Plan/Global%20Plan.md).
+> **Status:** early release (v0.1). It works day to day, but expect rough edges. The design is documented in [`Plan/`](Plan/Global%20Plan.md).
+
+## Download and install
+
+Requires **macOS 14 (Sonoma) or later**, on Apple Silicon or Intel.
+
+1. Download the latest `FootyHighlights-<version>.dmg` from the [**Releases page**](https://github.com/IlanLadabaum/footy-highlights/releases/latest).
+2. Open the DMG and drag **Footy Highlights** onto the **Applications** folder.
+3. Open Footy Highlights from Applications. The first time, macOS says it can't check the app for malicious software, because the app isn't signed with a paid Apple developer account. To allow it:
+   1. Click **Done** (not "Move to Trash").
+   2. Open **System Settings → Privacy & Security**, scroll down to the message about Footy Highlights and click **Open Anyway**.
+   3. Confirm with your password or Touch ID, then click **Open Anyway** again.
+
+   You only need to do this once.
+4. On first launch the app asks which leagues you follow and for your YouTube API key (see [Setting up your YouTube API key](#setting-up-your-youtube-api-key) below).
+
+### Updates
+
+The app checks for a new version once a day when it opens and asks before installing it. You can also check at any time under **Settings → Advanced → Check for Updates…**. Updates install in place, so you don't need to approve "Open Anyway" again.
+
+### Uninstall
+
+Drag the app from Applications to the Trash. To remove its data too (watched status, cached video lists and your API keys), delete `~/Library/Application Support/io.github.ilanladabaum.footyhighlights`.
+
+### Building from source
+
+You need Xcode 16 or later. Clone the repo, open `FootyHighlights.xcodeproj` and run the **FootyHighlights** scheme, or run `scripts/build-app.sh --install` to build a Release copy into Applications. See [`AGENTS.md`](AGENTS.md) for tests and tooling.
 
 ## Competitions
 
-Planned priority: **Premier League** and **UEFA Champions League**, then Serie A, Carabao Cup, Ligue 1, Bundesliga and La Liga. Highlights come from US broadcasters' YouTube channels (NBC Sports, CBS Sports Golazo, beIN SPORTS USA, USA Sports, ESPN FC), so **videos are currently only playable in the US**. Support for other regions is planned.
+**Premier League**, **UEFA Champions League**, La Liga, Bundesliga, Serie A, Ligue 1 and the Carabao Cup. Choose which ones you follow on first launch (and later under Settings → Leagues). Highlights come from US broadcasters' YouTube channels (NBC Sports, CBS Sports Golazo, beIN SPORTS USA, USA Sports, ESPN FC and, for La Liga gaps, ESPN Deportes in Spanish), so **videos are currently only playable in the US**. Support for other regions is planned.
 
 ## Setting up your YouTube API key
 
