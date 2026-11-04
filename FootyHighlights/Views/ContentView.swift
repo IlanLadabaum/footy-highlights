@@ -20,6 +20,8 @@ struct ContentView: View {
                         }
                 }
                 .overlay(alignment: .bottomTrailing) { StartQueueButton() }
+                .overlay(alignment: .top) { LoadingHighlightsBanner() }
+                .animation(.easeInOut(duration: 0.25), value: model.isLoadingHighlights)
             } else {
                 SetupView()
             }
@@ -108,6 +110,34 @@ final class UndoState {
     func undo(model: AppModel) {
         model.restore(previous)
         message = nil
+    }
+}
+
+/// "Loading highlights…" while a refresh is fetching (launch and manual Refresh). It doesn't block the
+/// cached list underneath, and it never appears on the player screen (nothing is drawn over the player).
+struct LoadingHighlightsBanner: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        let onPlayer: Bool = {
+            switch model.path.last {
+            case .player, .queue: true
+            default: false
+            }
+        }()
+        if model.isLoadingHighlights, !onPlayer {
+            HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Loading highlights…")
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(.regularMaterial, in: Capsule())
+            .shadow(radius: 4)
+            .padding(.top, 12)
+            .allowsHitTesting(false)
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
     }
 }
 

@@ -62,3 +62,18 @@ struct StoreTests {
         #expect(Refresher.fixturesNeedRefresh(last: now.addingTimeInterval(-25 * 3600), stored: [finished], now: now))
     }
 }
+
+struct FileKeyStoreTests {
+    @Test func savesReadsAndRemovesKeysInAPrivateFile() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("keys-\(UUID())/api-keys.json")
+        let store = FileKeyStore(url: url)
+        #expect(store.read(.youTube) == nil)
+        #expect(store.write(.youTube, value: "  abc \n"))
+        #expect(store.read(.youTube) == "abc")
+        #expect(store.read(.footballData) == nil)
+        let permissions = try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? Int
+        #expect(permissions == 0o600)
+        store.write(.youTube, value: "")
+        #expect(store.read(.youTube) == nil)
+    }
+}

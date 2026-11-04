@@ -33,7 +33,8 @@
             var screens: [(String, AnyView)] = [
                 ("1-competitions", AnyView(NavigationStack { CompetitionsView() })),
                 ("9-settings-keys", AnyView(KeysSettings().frame(width: 560, height: 520))),
-                ("9-settings-advanced", AnyView(AdvancedSettings().frame(width: 560, height: 200))),
+                ("9-settings-advanced", AnyView(AdvancedSettings().frame(width: 560, height: 420))),
+                ("9-settings-leagues", AnyView(LeagueSettings().frame(width: 560, height: 900))),
                 ("9-setup", AnyView(SetupView())),
             ]
             screens.append(("4-player-finished", AnyView(ZStack { Color.black; FinishedPanel(isQueue: true, replay: {}, back: {}) })))
@@ -69,6 +70,14 @@
                     screens.append(("3-round-\(competition.id)-2ndleg", AnyView(NavigationStack { RoundView(roundId: secondLeg.id) })))
                 }
             }
+            let cutRound = library.competitions.flatMap(\.rounds).first { $0.matches.contains(where: \.hasCutChoice) }
+            if let cutRound {
+                screens.append(("3-round-cut-toggle", AnyView(NavigationStack { RoundView(roundId: cutRound.id) })))
+            }
+            model.showLoadingBannerForSnapshot()
+            screens.append((
+                "1-competitions-loading",
+                AnyView(NavigationStack { CompetitionsView() }.overlay(alignment: .top) { LoadingHighlightsBanner() })))
             for (name, view) in screens {
                 render(view.environment(model), size: CGSize(width: 1200, height: 800), to: outputDir.appendingPathComponent("\(name).png"))
             }

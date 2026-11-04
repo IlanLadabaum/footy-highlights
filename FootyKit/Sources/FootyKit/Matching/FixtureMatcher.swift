@@ -33,7 +33,9 @@ public struct FixtureMatcher: Sendable {
         if let top = scored.max(by: { rank($0, publishedAt) < rank($1, publishedAt) }) {
             let tied = scored.filter { $0.score == top.score && $0.fixture.id != top.fixture.id }
             // Two different fixtures equally good is ambiguous unless one is clearly nearer in time.
-            if tied.isEmpty || tied.allSatisfy({ abs($0.fixture.utcDate.timeIntervalSince(top.fixture.utcDate)) > 86_400 }) {
+            if tied.isEmpty
+                || tied.allSatisfy({ abs($0.fixture.utcDate.timeIntervalSince(top.fixture.utcDate)) > 86_400 })
+            {
                 return top.fixture
             }
             return nil
@@ -48,6 +50,18 @@ public struct FixtureMatcher: Sendable {
             if hits.count == 1 { return hits[0] }
         }
         return nil
+    }
+
+    /// For free-form titles: the one fixture in the date window whose two teams are both named in the title.
+    /// More than one (a title naming three teams) is ambiguous, so nothing is matched.
+    public func match(mentionsIn text: String, publishedAt: Date, in fixtures: [Fixture]) -> Fixture? {
+        let hits = fixtures.filter { fixture in
+            let delta = publishedAt.timeIntervalSince(fixture.utcDate)
+            return delta >= -Self.windowBeforeKickoff && delta <= Self.windowAfterKickoff
+                && !(fixture.status == .postponed || fixture.status == .cancelled)
+                && names.mentions(text, team: fixture.home) && names.mentions(text, team: fixture.away)
+        }
+        return hits.count == 1 ? hits[0] : nil
     }
 
     /// Both names must match something; returns the summed strength or 0.

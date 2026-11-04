@@ -41,6 +41,24 @@ public struct ChannelConfig: Codable, Sendable, Hashable {
     public var spoilerProneTitles: Bool?
     /// Strip teaser prefixes like "LATE DRAMA ‼️ " from the home-team part.
     public var stripTeaserPrefix: Bool?
+    /// Free-form titles with no fixed "Home v Away" format: `titlePattern` only selects the channel's highlights
+    /// for this competition, and a video is matched to the fixture whose two teams the title names. Needs fixture
+    /// data, so the channel isn't used without a football-data key.
+    public var matchByMentions: Bool?
+    /// Length limits (seconds) that tell a full highlight apart from clips, for channels that post both.
+    public var minDurationSeconds: Int?
+    public var maxDurationSeconds: Int?
+    /// One line for Settings when a competition has more than one in-app source: language, coverage, spoilers.
+    public var sourceNote: String?
+
+    public var needsFixtureData: Bool { matchByMentions ?? false }
+
+    /// The video's length is within this channel's limits (unknown length doesn't pass when there are limits).
+    public func acceptsDuration(_ seconds: Int?) -> Bool {
+        guard minDurationSeconds != nil || maxDurationSeconds != nil else { return true }
+        guard let seconds else { return false }
+        return seconds >= (minDurationSeconds ?? 0) && seconds <= (maxDurationSeconds ?? .max)
+    }
 
     public var uploadsPlaylistId: String { "UU" + channelId.dropFirst(2) }
 }
@@ -94,4 +112,16 @@ public struct CompetitionConfig: Codable, Sendable, Hashable, Identifiable {
 
     public var effectiveRoundStyle: RoundStyle { roundStyle ?? .league }
     public var cup: Bool { isCup ?? false }
+
+    /// Channels whose videos play in the app, in the default order (first = preferred).
+    public var playableChannels: [String] { sources.filter { $0.effectiveRole == .primary }.map(\.channel) }
+
+    /// The choices offered in Settings when there's more than one in-app source: every source as the first
+    /// choice with the others as fallbacks, then each source on its own.
+    public var sourceOrderOptions: [[String]] {
+        let channels = playableChannels
+        guard channels.count > 1 else { return [] }
+        let ordered = channels.map { first in [first] + channels.filter { $0 != first } }
+        return ordered + channels.map { [$0] }
+    }
 }

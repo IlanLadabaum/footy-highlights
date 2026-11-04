@@ -24,7 +24,8 @@ public struct APIKeys: Sendable, Equatable {
     }
 }
 
-/// API keys in the Keychain (generic passwords under the app's bundle ID).
+/// API keys in the Keychain (generic passwords under the app's bundle ID). Only used to move keys saved
+/// by older versions into `FileKeyStore`.
 public struct KeychainKeyStore: Sendable {
     let service: String
 
@@ -55,12 +56,88 @@ public struct KeychainKeyStore: Sendable {
         return SecItemAdd(item as CFDictionary, nil) == errSecSuccess
     }
 
+    public func delete(_ kind: APIKeyKind) {
+        SecItemDelete(baseQuery(kind) as CFDictionary)
+    }
+
     private func baseQuery(_ kind: APIKeyKind) -> [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: kind.rawValue,
         ]
+    }
+}
+
+/// API keys in a private file in Application Support (readable only by the user's account).
+/// Chosen over the Keychain (2026-11-01): the app isn't signed with a stable identity, so macOS asked for
+/// the login password on every launch and after every update. The keys are low-value (free, per-user API keys).
+public struct FileKeyStore: Sendable {
+    public let url: URL
+
+    public init(url: URL = FileKeyStore.defaultURL) {
+        self.url = url
+    }
+
+    public static var defaultURL: URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        return base.appendingPathComponent(FootyKit.bundleIdentifier, isDirectory: true)
+            .appendingPathComponent("api-keys.json")
+    }
+
+    struct Contents: Codable {
+        var keys: [String: String] = [:]
+        /// Keys saved by older versions were moved out of the Keychain once.
+        var movedFromKeychain = false
+    }
+
+    func contents() -> Contents {
+        guard let data = try? Data(contentsOf: url), let contents = try? JSONDecoder().decode(Contents.self, from: data)
+        else { return Contents() }
+        return contents
+    }
+
+    public var hasMovedFromKeychain: Bool { contents().movedFromKeychain }
+
+    public func read(_ kind: APIKeyKind) -> String? {
+        contents().keys[kind.rawValue].flatMap { $0.isEmpty ? nil : $0 }
+    }
+
+    /// Saves the key, or removes it when `value` is empty.
+    @discardableResult
+    public func write(_ kind: APIKeyKind, value: String) -> Bool {
+        var contents = contents()
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        contents.keys[kind.rawValue] = trimmed.isEmpty ? nil : trimmed
+        return save(contents)
+    }
+
+    /// One-time move of keys saved by older versions in the Keychain. Each Keychain access may still show
+    /// macOS's password prompt this one last time.
+    public func moveFromKeychain(_ keychain: KeychainKeyStore) {
+        var contents = contents()
+        guard !contents.movedFromKeychain else { return }
+        for kind in APIKeyKind.allCases where contents.keys[kind.rawValue] == nil {
+            if let value = keychain.read(kind) { contents.keys[kind.rawValue] = value }
+        }
+        contents.movedFromKeychain = true
+        guard save(contents) else { return }
+        for kind in APIKeyKind.allCases { keychain.delete(kind) }
+    }
+
+    private func save(_ contents: Contents) -> Bool {
+        let manager = FileManager.default
+        let dir = url.deletingLastPathComponent()
+        do {
+            try manager.createDirectory(at: dir, withIntermediateDirectories: true)
+            let data = try JSONEncoder().encode(contents)
+            try data.write(to: url, options: [.atomic])
+            // Owner read/write only.
+            try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+            return true
+        } catch {
+            return false
+        }
     }
 }
 

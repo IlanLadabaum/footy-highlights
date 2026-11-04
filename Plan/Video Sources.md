@@ -7,6 +7,10 @@
 - [DECIDED] **The pipeline should be competition-agnostic.** Competitions, channels and title rules are *configuration*, so adding a competition later should be trivial. The first build covers only the core competitions. *(user, 2026-10-11)*
 - [DECIDED] **Prefer extended highlights** when a match has both normal and extended versions. *(user, 2026-10-11)*
   - [PROPOSED] (future) A setting to prefer extended or normal.
+- [DECIDED] [BUILT 2026-10-21] **Extended / normal toggle per match** *(user, 2026-10-21; supersedes "one entry per match, extended preferred")*. When a match has both cuts, the row gets a toggle between them, showing the selected cut's length. Queue / Queue all unwatched add whichever cut is selected. A Settings option picks the default (extended or normal).
+  - Today only beIN (Ligue 1) posts both cuts, and only for some matches. CBS posts extended only; NBC, USA Sports and ESPN FC post one version. (Future: Liga Portugal and Süper Lig on beIN also have both.)
+  - [DECIDED] **The toggle shows only on matches that have both cuts.** The hint this gives (which matches got an extended cut) is accepted. *(user, 2026-10-21)*
+  - [DECIDED] The choice is remembered per match; watching either cut marks the match watched; the player and queue use whichever cut was selected when it was opened or queued. *(user, 2026-10-21)*
 - [DECIDED] **YouTube is the video platform.** Answer to "can we avoid YouTube?" (2026-10-11): every other source (Peacock, Paramount+, ESPN+, league websites) is paid, DRM-protected and has no public API, so using it would mean scraping against its terms. YouTube is the only free, legal, API-backed source. The app's real value is the spoiler-free, fixture-based layer *on top* of the videos.
   - [DECIDED] The code still treats "video provider" as an interface, so another provider could be added if one ever appears.
 - [PROPOSED] **Region-specific source configs.** The US-only problem (deferred by the user) is mostly a configuration issue. Official league channels cover most other countries (see the per-league notes). Each user (or region preset) picks a source set.
@@ -49,6 +53,19 @@ Common caveats:
 - The hybrid option is gone because the official LALIGA videos can't be embedded (see above). ESPN Deportes is likely the only "complete" US option, but its titles spoil the result.
 - [DECIDED] **La Liga via ESPN FC**, accepting gaps and the occasional teaser-title flash. Skipped matches show "No highlights available", with a fallback to open the official LALIGA video on YouTube in the browser where one exists (details and spoiler warning in [App Structure & Data Flow](App%20Structure%20%26%20Data%20Flow.md#match-rows)). *(user, 2026-10-11)*
 - [PROPOSED] Re-check later whether ESPN FC's coverage improves, and whether new sources appear.
+- **ESPN Deportes re-check (2026-10-21, at the developer's request; counts only).** Channel `UC08mnbiC4FykqpHqbEWgFcg` (@ESPNDeportes), Spanish. Measured against football-data's 89 finished La Liga 2026-27 matches (MD1–9):
+  - **Coverage: 85/89** matches have an 8–25 min highlight video (typically 11–16 min) within 5 days of kickoff. Every matchday 8–10 of 10.
+  - **Embeddable and playable in the US: all 85** (`embeddable: true`; not yet test-played in the app's player).
+  - **Titles spoil: 64/85 contain a score or a result word** ("golea", "remontada", "empate"…); the rest are narrative ("doblete de…") and probably hint too. With YouTube's controls the original title shows for ~3 s at the start and whenever the mouse is over the video, so **almost every Deportes video would show its result on screen**.
+  - **Titles have no fixed format** (free-form Spanish sentence, then `| LaLiga`). Matching would rely on team names + fixture date window + duration, so it needs the football-data key; without it, Deportes can't be parsed reliably.
+  - Busy channel (~2,700 uploads since 1 Aug): first scan ~55 YouTube units, then incremental. Big clubs get many clips per match, so the duration filter matters.
+- [DECIDED] [BUILT 2026-10-21; Settings → Leagues] **La Liga source order is a setting** *(user, 2026-10-21)*. The user picks either source as the priority, with the other as a fallback for matches the first one skipped, or uses just one. Each source has a one-line pros/cons note in Settings, e.g.:
+  - ESPN FC: English; misses about a third of matches; titles mostly clean (occasional teaser).
+  - ESPN Deportes: Spanish; almost every match; the title shows the result at the start and on hover.
+  - Deportes videos (as primary or fallback) carry the "may show score at start" flag.
+  - [DECIDED] Default for new users and existing installs: ESPN FC first, ESPN Deportes as fallback. *(user, 2026-10-21)*
+  - [DECIDED] Without a football-data key, Deportes titles can't be matched to matches (no fixed format), so Deportes is unavailable without the key, shown greyed with the usual "add a football-data key" message. *(user, 2026-10-21)*
+  - [DECIDED] Keep "Open on YouTube (may show score)" (official LALIGA video) only for matches neither chosen source has. *(user, 2026-10-21)*
 
 ### Bundesliga alternatives (non-US region configs)
 
@@ -56,7 +73,19 @@ Common caveats:
 - Telemundo Deportes `UCjZ7QPKb89R-4SxzBoceyOg`: Spanish, US, complete, no scores in titles.
 - DAZN Football `UCSZ21xyG8w_33KriMM69IxQ`: Canada only, big matches only.
 
-## Women's leagues (requested 2026-10-12)
+## Leagues to add (after v1)
+
+Decided additions, not yet scheduled in the Build Plan. Each still needs its source and fixture-data details checked before building.
+
+| League | Decided | Known US source | Fixture data (football-data free tier) |
+|---|---|---|---|
+| NWSL, WSL | 2026-10-12 | Not researched (see below) | Neither covered |
+| **EFL Championship, League One, League Two** | 2026-11-01 *(user)* | CBS Sports Golazo (same title format as UCL) | Championship yes (`ELC`); League One/Two no (no-key behaviour, like the Carabao Cup) |
+| **Turkish Süper Lig** | 2026-11-01 *(user)* | beIN SPORTS USA (normal + extended, so the extended/normal toggle applies); ESPN FC (teaser titles) | No (no-key behaviour) |
+
+- [OPEN] For the EFL and Süper Lig: confirm coverage (every match?), title formats, spoilers in titles and embeddability, as was done for the v1 leagues.
+
+### Women's leagues (requested 2026-10-12)
 
 - [DECIDED] **Add support for the NWSL and the WSL** (Barclays Women's Super League). *(user, 2026-10-12)* Timing: after v1 (not yet scheduled in the Build Plan).
 - [OPEN] **Highlight sources (US):** not researched yet. To check: the NWSL's own channel and its US broadcasters' channels; the WSL's official channel and its US rights holder. For each: coverage, title format, spoilers in titles, embeddability.
@@ -64,16 +93,14 @@ Common caveats:
 
 ## Bonus competitions (held for later)
 
-- [DECIDED] Listed here; **not included until the core app works**. *(user, 2026-10-11)*
+- [DECIDED] Listed here; **not included until the core app works**. *(user, 2026-10-11)* The EFL leagues and the Turkish Süper Lig moved to [Leagues to add](#leagues-to-add-after-v1) on 2026-11-01.
 
 | Competition | Known US source |
 |---|---|
-| EFL Championship / League One / League Two | CBS Sports Golazo (same format as UCL). [DECIDED] *(user, 2026-10-12)*: future leagues, **not yet**. The Championship is on football-data's free tier (`ELC`); League One/Two aren't. |
 | Coppa Italia | CBS Sports Golazo |
 | UCL qualifying rounds | CBS Sports Golazo |
 | Scottish Premiership (SPFL) | CBS Sports Golazo (sparse) |
 | Liga Portugal | beIN SPORTS USA (normal + extended) |
-| Turkish Süper Lig | beIN SPORTS USA (normal + extended); ESPN FC (teaser titles) |
 | MLS | ESPN FC (teaser titles); MLS's own channel not yet checked |
 | Europa / Conference League, FA Cup | Not yet researched |
 

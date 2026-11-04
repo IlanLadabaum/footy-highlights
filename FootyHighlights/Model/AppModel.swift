@@ -26,11 +26,19 @@ final class AppModel {
     /// Competition IDs the user follows; nil until they've chosen (first launch asks).
     private(set) var enabledLeagues: Set<String>?
     private static let leaguesDefaultsKey = "enabledLeagues"
+    /// Which cut a match shows when it has both (Settings → Advanced).
+    private(set) var defaultCut: HighlightCut = .extended
+    private static let defaultCutKey = "defaultCut"
+    /// Competition ID → in-app sources in the viewer's order (Settings → Leagues). Missing = config order.
+    private(set) var sourceOrder: [String: [String]] = [:]
+    private static let sourceOrderKey = "sourceOrder"
 
     private(set) var library = Library.empty
     private(set) var keys = APIKeys(youTube: nil, footballData: nil)
     private(set) var keySources: [APIKeyKind: KeySource] = [:]
     private(set) var isRefreshing = false
+    /// A refresh is actually fetching (not skipped by the 15-minute rule): shows the "Loading highlights…" banner.
+    private(set) var isLoadingHighlights = false
     private(set) var lastRefresh: Date?
     private(set) var refreshErrors: [String] = []
     /// Set when a manual refresh was skipped because the data is fresh.
@@ -45,15 +53,18 @@ final class AppModel {
     init(store injected: Store? = nil, defaults: UserDefaults = .standard) {
         self.defaults = defaults
         var openError: String?
-        let store = injected ?? {
-            do {
-                return try Store()
-            } catch {
-                // Fall back to memory so the app still works; only watched status is lost.
-                openError = "Couldn't open the local database (\(error.localizedDescription)). Watched status won't be saved."
-                return try! Store(inMemory: true)  // swiftlint:disable:this force_try
-            }
-        }()
+        let store =
+            injected
+            ?? {
+                do {
+                    return try Store()
+                } catch {
+                    // Fall back to memory so the app still works; only watched status is lost.
+                    openError =
+                        "Couldn't open the local database (\(error.localizedDescription)). Watched status won't be saved."
+                    return try! Store(inMemory: true)  // swiftlint:disable:this force_try
+                }
+            }()
         storeError = openError
         self.store = store
         refresher = Refresher(config: config, store: store)
@@ -61,6 +72,8 @@ final class AppModel {
         reloadKeys()
         lastRefresh = refresher.lastRefresh
         enabledLeagues = defaults.stringArray(forKey: Self.leaguesDefaultsKey).map(Set.init)
+        defaultCut = defaults.string(forKey: Self.defaultCutKey).flatMap(HighlightCut.init(rawValue:)) ?? .extended
+        sourceOrder = defaults.dictionary(forKey: Self.sourceOrderKey) as? [String: [String]] ?? [:]
         queue = (defaults.stringArray(forKey: Self.queueDefaultsKey) ?? []).compactMap(MatchKey.init(string:))
         rebuild()
     }
@@ -68,16 +81,28 @@ final class AppModel {
     // MARK: Data
 
     func rebuild() {
-        library = builder.build(fixtures: store.fixtures(), videos: store.videos(), flags: store.flags())
+        library = builder.build(
+            fixtures: store.fixtures(), videos: store.videos(), flags: store.flags(), options: libraryOptions)
+    }
+
+    private var libraryOptions: LibraryOptions {
+        LibraryOptions(
+            defaultCut: defaultCut, sourceOrder: sourceOrder, cutChoices: store.cutChoices(),
+            hasFixtureData: hasFootballDataKey)
     }
 
     /// Launch and the Refresh button: refreshes only if the data is older than 15 minutes (per the plan).
     func refresh(force: Bool = false) async {
         guard !isRefreshing, hasYouTubeKey else { return }
         isRefreshing = true
+        isLoadingHighlights = refresher.isDue(force: force)
         upToDateNotice = false
-        defer { isRefreshing = false }
-        let report = await refresher.refresh(keys: keys, enabled: enabledLeagues, force: force)
+        defer {
+            isRefreshing = false
+            isLoadingHighlights = false
+        }
+        let report = await refresher.refresh(
+            keys: keys, enabled: enabledLeagues, sourceOrder: sourceOrder, force: force)
         if report.skipped {
             upToDateNotice = true
         } else {
@@ -86,6 +111,11 @@ final class AppModel {
         lastRefresh = refresher.lastRefresh
         rebuild()
     }
+
+    #if DEBUG
+        /// Snapshot mode: show the "Loading highlights…" banner without a refresh.
+        func showLoadingBannerForSnapshot() { isLoadingHighlights = true }
+    #endif
 
     // MARK: Keys
 
@@ -144,6 +174,34 @@ final class AppModel {
     func restore(_ previous: [MatchKey: MatchFlags]) {
         store.restoreFlags(previous)
         rebuild()
+    }
+
+    // MARK: Highlight cuts and sources
+
+    /// The extended / normal toggle on a match row. Remembered per match.
+    func setCut(_ entry: MatchEntry, _ cut: HighlightCut) {
+        store.setCut(cut, for: entry.id)
+        rebuild()
+    }
+
+    func setDefaultCut(_ cut: HighlightCut) {
+        defaultCut = cut
+        defaults.set(cut.rawValue, forKey: Self.defaultCutKey)
+        rebuild()
+    }
+
+    /// The competition's in-app sources in the viewer's order.
+    func sources(for competition: CompetitionConfig) -> [String] {
+        sourceOrder[competition.id] ?? competition.playableChannels
+    }
+
+    /// A newly used source is fetched straight away.
+    func setSources(_ order: [String], for competition: CompetitionConfig) {
+        let added = !Set(order).isSubset(of: Set(sources(for: competition)))
+        sourceOrder[competition.id] = order
+        defaults.set(sourceOrder, forKey: Self.sourceOrderKey)
+        rebuild()
+        if added, hasYouTubeKey { Task { await refresh(force: true) } }
     }
 
     // MARK: Leagues
@@ -261,14 +319,19 @@ final class AppModel {
         let fixtures = (library.fixturesByCompetition[competition.id] ?? []).filter { $0.season == season }
         let revealed = Set(round.matches.filter { $0.flags.revealed }.compactMap(\.fixture?.id))
         let names = TeamNames(config: config)
-        let calculator = StandingsCalculator(rule: competition.tiebreak ?? .premierLeague) { names.displayName(for: $0) }
+        let calculator = StandingsCalculator(rule: competition.tiebreak ?? .premierLeague) {
+            names.displayName(for: $0)
+        }
         let rows = calculator.table(fixtures: fixtures, before: cutoff, applying: revealed)
         let deductions = competition.footballDataCode.map { store.deductions(code: $0, season: season) } ?? [:]
         let notes = rows.compactMap { row -> String? in
             guard let points = deductions[row.team.id] else { return nil }
-            return "\(names.displayName(for: row.team)) had \(points) point\(points == 1 ? "" : "s") deducted this season (not included)."
+            return
+                "\(names.displayName(for: row.team)) had \(points) point\(points == 1 ? "" : "s") deducted this season (not included)."
         }
-        let applied = revealed.filter { id in fixtures.contains { $0.id == id && $0.utcDate >= cutoff && $0.status.isFinal } }
+        let applied = revealed.filter { id in
+            fixtures.contains { $0.id == id && $0.utcDate >= cutoff && $0.status.isFinal }
+        }
         return RoundTable(rows: rows, revealedCount: applied.count, deductionNotes: notes)
     }
 

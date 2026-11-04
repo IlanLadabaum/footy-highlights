@@ -27,7 +27,18 @@
       "name": "ESPN FC",
       "titlePattern": "^(?<home>.+?) vs\\.? (?<away>.+?) \\| LALIGA Highlights\\b",
       "spoilerProneTitles": true,
-      "stripTeaserPrefix": true
+      "stripTeaserPrefix": true,
+      "sourceNote": "English. Misses about a third of matches; titles are mostly clean, with the occasional teaser."
+    },
+    "espndeportes": {
+      "channelId": "UC08mnbiC4FykqpHqbEWgFcg",
+      "name": "ESPN Deportes",
+      "titlePattern": "\\bLa ?Liga\\b",
+      "matchByMentions": true,
+      "minDurationSeconds": 480,
+      "maxDurationSeconds": 1500,
+      "spoilerProneTitles": true,
+      "sourceNote": "Spanish. Almost every match, but the title shows the result when the video starts and on hover. Needs a football-data key."
     },
     "laliga": {
       "channelId": "UCTv-XvfzLX3i4IGWAm4sbmA",
@@ -68,6 +79,7 @@
       "tiebreak": "headToHeadFirst",
       "sources": [
         { "channel": "espnfc" },
+        { "channel": "espndeportes" },
         { "channel": "laliga", "role": "browserFallback" }
       ]
     },

@@ -4,15 +4,16 @@ import Foundation
 /// Where an API key currently comes from.
 enum KeySource: Equatable {
     case none
-    case keychain
+    /// The app's private key file in Application Support.
+    case file
     /// Debug builds only: the project's `.env`.
     case envFile
 }
 
-/// Loads and saves the user's API keys. Release builds use only the Keychain; Debug builds read
-/// the project's `.env` first so rebuilds (which change the ad-hoc signature) don't trigger Keychain prompts.
+/// Loads and saves the user's API keys: a private file in Application Support (no Keychain prompts).
+/// Debug builds read the project's `.env` first.
 struct KeyManager {
-    let keychain = KeychainKeyStore()
+    let store = FileKeyStore()
 
     var envURL: URL? {
         #if DEBUG
@@ -26,28 +27,19 @@ struct KeyManager {
         #endif
     }
 
-    /// Keychain values read this launch. Each Keychain read of an ad-hoc-signed app can show a macOS
-    /// permission prompt, so each key is read at most once per launch and then kept in memory.
-    @MainActor private static var keychainCache: [APIKeyKind: String?] = [:]
-
     @MainActor
     func load() -> (keys: APIKeys, sources: [APIKeyKind: KeySource]) {
         let env = envURL.map(EnvFile.keys(from:)) ?? APIKeys(youTube: nil, footballData: nil)
+        // Keys saved by versions that used the Keychain move to the file once.
+        if !store.hasMovedFromKeychain { store.moveFromKeychain(KeychainKeyStore()) }
         var sources: [APIKeyKind: KeySource] = [:]
         func resolve(_ kind: APIKeyKind, _ fromEnv: String?) -> String? {
             if let fromEnv, !fromEnv.isEmpty {
                 sources[kind] = .envFile
                 return fromEnv
             }
-            let stored: String?
-            if let cached = Self.keychainCache[kind] {
-                stored = cached
-            } else {
-                stored = keychain.read(kind)
-                Self.keychainCache[kind] = stored
-            }
-            if let stored {
-                sources[kind] = .keychain
+            if let stored = store.read(kind) {
+                sources[kind] = .file
                 return stored
             }
             sources[kind] = KeySource.none
@@ -59,9 +51,6 @@ struct KeyManager {
 
     @MainActor @discardableResult
     func save(_ kind: APIKeyKind, value: String) -> Bool {
-        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        let ok = keychain.write(kind, value: trimmed)
-        if ok { Self.keychainCache[kind] = trimmed.isEmpty ? .some(nil) : trimmed }
-        return ok
+        store.write(kind, value: value)
     }
 }

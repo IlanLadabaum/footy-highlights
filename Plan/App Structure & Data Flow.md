@@ -24,6 +24,7 @@
   - Requests are serialised through one queue, never fired in parallel.
 - [DECIDED] **Standings (future table feature):** fetched once per (competition, round) and cached permanently, since past tables don't change (apart from point deductions).
 - [DECIDED] YouTube data is cached and refreshed within 30 days (ToS DP III.E.4.c), which happens automatically through normal use.
+- [DECIDED] [BUILT 2026-10-21] **"Loading highlights…" banner whenever a refresh runs** (on launch and on manual Refresh) *(user, 2026-10-21)*. Non-blocking: the cached list stays usable underneath; it disappears when the refresh finishes. **No progress steps**, just the one message. Previously the only sign was a small toolbar spinner.
 
 ### Effect on UI organisation
 
@@ -67,6 +68,7 @@
 
 - [DECIDED] **Queue** *(user, 2026-10-12)*: while browsing the normal screens, the user can add any number of highlights to a queue, then press a button to start it. The queue plays in order on the player screen.
   - [DECIDED] A video is marked watched only when the player **reaches** it, not when it's added to the queue.
+  - [DECIDED] [BUILT 2026-10-25] **Watching a queued match outside the queue removes it from the queue** (opening it with Play from a row). *(user, 2026-10-25)*
   - [DECIDED] The queue can be opened, **reordered by dragging**, and emptied with a **Clear queue** button.
   - [DECIDED] **Start queue button on screen** *(user, 2026-10-12)*: whenever the queue has videos, a "Start queue" button floats in the bottom-right of the browsing screens (in addition to the one in the queue popover).
   - [DECIDED] **"Queue all unwatched"** on each round (matchweek): queues that round's unwatched highlights in chronological order (the order rows are listed in). *(user, 2026-10-12)*
@@ -99,7 +101,8 @@
 - [DECIDED] **No sync of watched status** (iCloud etc.) for now. *(user, 2026-10-11)* Watched state is stored locally.
 - [DECIDED] Advanced Settings includes "Hide video durations" (default off).
 - [DECIDED] **API keys are entered and edited in the app's Settings.** *(user, 2026-10-11)* Settings links to where each key is obtained: [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials) / the YouTube Data API v3 page for the YouTube key, and [football-data.org registration](https://www.football-data.org/client/register) for the fixture key. Ideally also a link to the README's step-by-step guide.
-- [DECIDED] Keys are stored in the macOS/iPadOS Keychain. `.env` is only a developer convenience: a user who downloads the app has no project folder, and an iPad has no `.env`. The README key guides will point to Settings once the app exists.
+- [DECIDED] [BUILT 2026-11-01] **Keys are stored in a private file** (Application Support, readable only by the user's account), **not the Keychain**. *(user, 2026-11-01: the keys don't need strong protection, and it spares every user the Keychain password prompts.)* Keys saved in the Keychain by older versions are moved to the file once (macOS may prompt one last time), then removed from the Keychain.
+- ~~[DECIDED] Keys are stored in the macOS/iPadOS Keychain.~~ Superseded 2026-11-01 (above). `.env` is only a developer convenience: a user who downloads the app has no project folder, and an iPad has no `.env`. The README key guides will point to Settings once the app exists.
   - [DECIDED] Developer builds also read `.env`, for convenience.
 - [DECIDED] **Validate keys when they're entered** *(user, 2026-10-13; not built yet)*. Today keys are saved unchecked, and a bad key only shows up later as a small ⚠️ in the toolbar.
   - On Save (Settings) or Continue (first-launch setup), test the key with one cheap request: YouTube, a 1-unit Data API call; football-data, 1 request through the normal throttle.

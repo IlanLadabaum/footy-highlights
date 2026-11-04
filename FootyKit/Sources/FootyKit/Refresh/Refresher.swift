@@ -29,8 +29,10 @@ public final class Refresher {
     let throttle: RequestThrottle
     let http: HTTPClient
 
-    public init(config: AppConfig, store: Store, throttle: RequestThrottle = RequestThrottle(),
-                http: HTTPClient = URLSessionHTTPClient()) {
+    public init(
+        config: AppConfig, store: Store, throttle: RequestThrottle = RequestThrottle(),
+        http: HTTPClient = URLSessionHTTPClient()
+    ) {
         self.config = config
         self.store = store
         self.parser = TitleParser(config: config)
@@ -40,13 +42,21 @@ public final class Refresher {
 
     public var lastRefresh: Date? { store.syncDate("refresh") }
 
+    /// Whether `refresh` would fetch anything now, or skip because the data is less than 15 minutes old.
+    public func isDue(force: Bool = false, now: Date = Date()) -> Bool {
+        guard !force, let last = lastRefresh else { return true }
+        return now.timeIntervalSince(last) >= Self.minimumInterval
+    }
+
     /// `enabled`: competition IDs the user follows. Others aren't fetched at all (nil = all).
-    public func refresh(keys: APIKeys, enabled: Set<String>? = nil, force: Bool = false, now: Date = Date()) async
-        -> RefreshReport
-    {
+    /// `sourceOrder`: the viewer's in-app sources per competition (see `LibraryOptions`); unused channels aren't scanned.
+    public func refresh(
+        keys: APIKeys, enabled: Set<String>? = nil, sourceOrder: [String: [String]] = [:], force: Bool = false,
+        now: Date = Date()
+    ) async -> RefreshReport {
         var report = RefreshReport()
         let competitions = config.competitionsByPriority.filter { enabled?.contains($0.id) ?? true }
-        if !force, let last = lastRefresh, now.timeIntervalSince(last) < Self.minimumInterval {
+        if !isDue(force: force, now: now) {
             report.skipped = true
             return report
         }
@@ -55,7 +65,14 @@ public final class Refresher {
             await refreshFixtures(key: key, competitions: competitions, season: season, now: now, report: &report)
         }
         if let key = keys.youTube, !key.isEmpty {
-            await refreshVideos(key: key, competitions: competitions, season: season, now: now, report: &report)
+            let options = LibraryOptions(sourceOrder: sourceOrder, hasFixtureData: !(keys.footballData ?? "").isEmpty)
+            let channelKeys = Set(
+                competitions.flatMap { competition in
+                    options.channels(for: competition, config: config)
+                        + competition.sources.filter { $0.effectiveRole == .browserFallback }.map(\.channel)
+                })
+            await refreshVideos(
+                key: key, channelKeys: channelKeys.sorted(), season: season, now: now, report: &report)
         } else {
             report.errors.append("Add a YouTube API key in Settings to find highlights.")
         }
@@ -121,27 +138,30 @@ public final class Refresher {
     // MARK: YouTube
 
     func refreshVideos(
-        key: String, competitions: [CompetitionConfig], season: Int, now: Date, report: inout RefreshReport
+        key: String, channelKeys: [String], season: Int, now: Date, report: inout RefreshReport
     ) async {
         let client = YouTubeClient(apiKey: key, http: http)
-        // Only channels used by followed competitions. A channel shared with a followed one (CBS) is still
-        // scanned in full; the others' videos are simply not shown.
-        let channelKeys = Set(competitions.flatMap { $0.sources.map(\.channel) }).sorted()
+        // Only channels used by followed competitions and chosen sources. A channel shared with a followed
+        // competition (CBS) is still scanned in full; the others' videos are simply not shown.
         let cutoff = Season.scanCutoff(forSeason: season)
         let known = Set(store.videos().map(\.id))
         for channelKey in channelKeys {
             guard let channel = config.channels[channelKey] else { continue }
             let syncKey = "yt:\(channelKey)"
             let lastFull = store.syncDate(syncKey + ":full")
-            let fullScan = lastFull == nil || lastFull! < cutoff || now.timeIntervalSince(lastFull!) > Self.fullScanInterval
-            let since = fullScan ? cutoff : max(cutoff, (store.syncDate(syncKey) ?? cutoff).addingTimeInterval(-Self.incrementalOverlap))
+            let fullScan =
+                lastFull == nil || lastFull! < cutoff || now.timeIntervalSince(lastFull!) > Self.fullScanInterval
+            let since =
+                fullScan
+                ? cutoff : max(cutoff, (store.syncDate(syncKey) ?? cutoff).addingTimeInterval(-Self.incrementalOverlap))
             do {
                 let uploads = try await client.uploads(playlistId: channel.uploadsPlaylistId, since: since)
                 report.youTubeUnits += max(1, (uploads.count + 49) / 50)
                 let highlights = uploads.compactMap { upload -> Video? in
                     guard parser.parse(title: upload.title, channelKey: channelKey) != nil else { return nil }
-                    return Video(id: upload.videoId, channelKey: channelKey, originalTitle: upload.title,
-                                 publishedAt: upload.publishedAt)
+                    return Video(
+                        id: upload.videoId, channelKey: channelKey, originalTitle: upload.title,
+                        publishedAt: upload.publishedAt)
                 }
                 store.upsertVideos(highlights, seenAt: now, replacingChannel: fullScan ? channelKey : nil)
                 report.newVideos += highlights.filter { !known.contains($0.id) }.count

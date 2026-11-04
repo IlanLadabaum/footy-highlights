@@ -20,11 +20,13 @@ public struct LibraryBuilder: Sendable {
     }
 
     public func build(
-        fixtures: [Fixture], videos: [Video], flags: [MatchKey: MatchFlags], now: Date = Date()
+        fixtures: [Fixture], videos: [Video], flags: [MatchKey: MatchFlags], options: LibraryOptions = LibraryOptions(),
+        now: Date = Date()
     ) -> Library {
         let fixturesByCompetition = Dictionary(grouping: fixtures, by: \.competitionId)
         var parsedByCompetition: [String: [(Video, ParsedTitle)]] = [:]
         for video in videos {
+            guard config.channels[video.channelKey]?.acceptsDuration(video.durationSeconds) ?? true else { continue }
             if let parsed = parser.parse(title: video.originalTitle, channelKey: video.channelKey) {
                 parsedByCompetition[parsed.competitionId, default: []].append((video, parsed))
             }
@@ -32,11 +34,17 @@ public struct LibraryBuilder: Sendable {
 
         let summaries = config.competitionsByPriority.map { competition in
             let compFixtures = competition.footballDataCode == nil ? [] : (fixturesByCompetition[competition.id] ?? [])
-            let parsed = parsedByCompetition[competition.id] ?? []
+            // Only the viewer's chosen in-app sources (plus browser-only fallbacks).
+            let channels = options.channels(for: competition, config: config)
+            let parsed = (parsedByCompetition[competition.id] ?? []).filter { video, title in
+                title.role == .browserFallback || channels.contains(video.channelKey)
+            }
             let rounds =
                 compFixtures.isEmpty
-                ? videoOnlyRounds(competition: competition, parsed: parsed, flags: flags)
-                : fixtureRounds(competition: competition, fixtures: compFixtures, parsed: parsed, flags: flags, now: now)
+                ? videoOnlyRounds(competition: competition, parsed: parsed, flags: flags, options: options)
+                : fixtureRounds(
+                    competition: competition, fixtures: compFixtures, parsed: parsed, flags: flags,
+                    options: options, channelOrder: channels, now: now)
             return CompetitionSummary(
                 config: competition,
                 rounds: rounds.sorted { $0.start > $1.start },
@@ -55,12 +63,14 @@ public struct LibraryBuilder: Sendable {
         var fallbackByFixture: [Int: [Video]]
         var extendedIds: Set<String>
         var flags: [MatchKey: MatchFlags]
+        var options: LibraryOptions
+        var channelOrder: [String]
         var now: Date
     }
 
     private func fixtureRounds(
         competition: CompetitionConfig, fixtures: [Fixture], parsed: [(Video, ParsedTitle)],
-        flags: [MatchKey: MatchFlags], now: Date
+        flags: [MatchKey: MatchFlags], options: LibraryOptions, channelOrder: [String], now: Date
     ) -> [Round] {
         var primaryByFixture: [Int: [Video]] = [:]
         var fallbackByFixture: [Int: [Video]] = [:]
@@ -68,7 +78,16 @@ public struct LibraryBuilder: Sendable {
         var unmatched: [(Video, ParsedTitle)] = []
         for (video, title) in parsed {
             if title.isExtended { extendedIds.insert(video.id) }
-            guard let fixture = matcher.match(home: title.home, away: title.away, publishedAt: video.publishedAt, in: fixtures)
+            if let text = title.mentionText {
+                // Free-form titles: matched only when they clearly name one fixture; otherwise left out.
+                if let fixture = matcher.match(mentionsIn: text, publishedAt: video.publishedAt, in: fixtures) {
+                    primaryByFixture[fixture.id, default: []].append(video)
+                }
+                continue
+            }
+            guard
+                let fixture = matcher.match(
+                    home: title.home, away: title.away, publishedAt: video.publishedAt, in: fixtures)
             else {
                 if title.role == .primary { unmatched.append((video, title)) }
                 continue
@@ -81,7 +100,8 @@ public struct LibraryBuilder: Sendable {
 
         let context = FixtureContext(
             competition: competition, fixtures: fixtures, primaryByFixture: primaryByFixture,
-            fallbackByFixture: fallbackByFixture, extendedIds: extendedIds, flags: flags, now: now)
+            fallbackByFixture: fallbackByFixture, extendedIds: extendedIds, flags: flags, options: options,
+            channelOrder: channelOrder, now: now)
         let groups = Dictionary(grouping: fixtures) { roundKey(for: $0) }
         var rounds: [Round] = []
         for (key, roundFixtures) in groups {
@@ -110,8 +130,9 @@ public struct LibraryBuilder: Sendable {
                 seasonTeams.contains { names.matchScore(videoName: name, team: $0) >= 2 }
             }
         }
-        for (video, title) in dedupe(plausible) {
-            let entry = videoEntry(video, title, competition: competition, roundId: nil, titleRoundName: nil, flags: flags)
+        for (video, title) in dedupe(plausible, cut: options.defaultCut) {
+            let entry = videoEntry(
+                video, title, competition: competition, roundId: nil, titleRoundName: nil, flags: flags)
             if let index = bestRoundIndex(for: video.publishedAt, in: rounds) {
                 var round = rounds[index]
                 var placed = entry
@@ -147,13 +168,29 @@ public struct LibraryBuilder: Sendable {
         let now = context.now
         let videos = context.primaryByFixture[fixture.id] ?? []
         let fallbacks = context.fallbackByFixture[fixture.id] ?? []
-        let video = preferred(videos, extendedIds: context.extendedIds)
+        // The first source in the viewer's order that has this match; then its normal / extended cut.
+        let source =
+            context.channelOrder.lazy.map { channel in videos.filter { $0.channelKey == channel } }
+            .first { !$0.isEmpty } ?? []
+        let extendedCut = preferred(source.filter { context.extendedIds.contains($0.id) }, extendedIds: [])
+        let normalCut = preferred(source.filter { !context.extendedIds.contains($0.id) }, extendedIds: [])
+        var cutOptions: [HighlightCut: Video] = [:]
+        var selectedCut: HighlightCut?
+        let video: Video?
+        if let extendedCut, let normalCut {
+            cutOptions = [.extended: extendedCut, .normal: normalCut]
+            selectedCut = context.options.cutChoices[.fixture(fixture.id)] ?? context.options.defaultCut
+            video = cutOptions[selectedCut!]
+        } else {
+            video = extendedCut ?? normalCut
+        }
         let keys = [MatchKey.fixture(fixture.id)] + videos.map { MatchKey.video($0.id) }
         let availability: Availability
         if video != nil {
             availability = .playable
         } else if fixture.status.isFinal {
-            availability = now.timeIntervalSince(fixture.utcDate) < Self.highlightGrace ? .highlightsPending : .noHighlights
+            availability =
+                now.timeIntervalSince(fixture.utcDate) < Self.highlightGrace ? .highlightsPending : .noHighlights
         } else if fixture.status.isLive {
             availability = .inProgress
         } else if fixture.status.isUpcoming {
@@ -166,6 +203,7 @@ public struct LibraryBuilder: Sendable {
         let channel = video.flatMap { config.channels[$0.channelKey] }
         return MatchEntry(
             id: .fixture(fixture.id), competitionId: competition.id, roundId: roundId, fixture: fixture, video: video,
+            cutOptions: cutOptions, selectedCut: selectedCut,
             browserFallbackVideo: video == nil ? fallbacks.max { $0.publishedAt < $1.publishedAt } : nil,
             homeName: home, awayName: away,
             neutralTitle: "\(home) v \(away) · \(competition.name) · \(roundName)",
@@ -199,10 +237,12 @@ public struct LibraryBuilder: Sendable {
     // MARK: - Without fixture data
 
     private func videoOnlyRounds(
-        competition: CompetitionConfig, parsed: [(Video, ParsedTitle)], flags: [MatchKey: MatchFlags]
+        competition: CompetitionConfig, parsed: [(Video, ParsedTitle)], flags: [MatchKey: MatchFlags],
+        options: LibraryOptions
     ) -> [Round] {
         var rounds: [RoundID: Round] = [:]
-        for (video, title) in dedupe(parsed.filter { $0.1.role == .primary }) {
+        let playable = parsed.filter { $0.1.role == .primary && $0.1.mentionText == nil }
+        for (video, title) in dedupe(playable, cut: options.defaultCut) {
             let id: RoundID
             let name: String
             let layout: RoundLayout
@@ -241,7 +281,8 @@ public struct LibraryBuilder: Sendable {
 
     /// `titleRoundName`: the round read from the title, included in the neutral title when present.
     private func videoEntry(
-        _ video: Video, _ title: ParsedTitle, competition: CompetitionConfig, roundId: RoundID?, titleRoundName: String?,
+        _ video: Video, _ title: ParsedTitle, competition: CompetitionConfig, roundId: RoundID?,
+        titleRoundName: String?,
         flags: [MatchKey: MatchFlags]
     ) -> MatchEntry {
         let channel = config.channels[video.channelKey]
@@ -275,7 +316,7 @@ public struct LibraryBuilder: Sendable {
     }
 
     /// One entry per match: collapse uploads of the same pairing within 4 days, keeping the preferred version.
-    private func dedupe(_ items: [(Video, ParsedTitle)]) -> [(Video, ParsedTitle)] {
+    private func dedupe(_ items: [(Video, ParsedTitle)], cut: HighlightCut) -> [(Video, ParsedTitle)] {
         let extendedIds = Set(items.filter { $0.1.isExtended }.map(\.0.id))
         var groups: [[(Video, ParsedTitle)]] = []
         for item in items.sorted(by: { $0.0.publishedAt < $1.0.publishedAt }) {
@@ -291,16 +332,21 @@ public struct LibraryBuilder: Sendable {
             }
         }
         return groups.compactMap { group in
-            guard let best = preferred(group.map(\.0), extendedIds: extendedIds) else { return nil }
+            guard let best = preferred(group.map(\.0), extendedIds: extendedIds, cut: cut) else { return nil }
             return group.first { $0.0.id == best.id }
         }
     }
 
-    /// Extended cut first, then the longest, then the newest.
-    private func preferred(_ videos: [Video], extendedIds: Set<String>) -> Video? {
+    /// The preferred cut first (extended by default), then the longest, then the newest.
+    private func preferred(_ videos: [Video], extendedIds: Set<String>, cut: HighlightCut = .extended) -> Video? {
         videos.max { lhs, rhs in
-            let left = (extendedIds.contains(lhs.id) ? 1 : 0, lhs.durationSeconds ?? 0, lhs.publishedAt)
-            let right = (extendedIds.contains(rhs.id) ? 1 : 0, rhs.durationSeconds ?? 0, rhs.publishedAt)
+            let wantsExtended = cut == .extended
+            let left = (
+                extendedIds.contains(lhs.id) == wantsExtended ? 1 : 0, lhs.durationSeconds ?? 0, lhs.publishedAt
+            )
+            let right = (
+                extendedIds.contains(rhs.id) == wantsExtended ? 1 : 0, rhs.durationSeconds ?? 0, rhs.publishedAt
+            )
             return left < right
         }
     }

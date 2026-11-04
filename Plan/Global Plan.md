@@ -43,6 +43,7 @@ A free, open-source app that collects official football match highlight videos a
 
 ## Future features (not in current scope)
 
+- [DECIDED] (after v1) **More leagues**: NWSL, WSL, EFL Championship / League One / League Two, Turkish Süper Lig. See [Video Sources](Video%20Sources.md#leagues-to-add-after-v1). *(user, 2026-10-12 and 2026-11-01)*
 - [DECIDED] (after v1) UCL knockout bracket, only once the path to the final is fixed. See [League Table Context](League%20Table%20Context.md).
 
 - [PROPOSED] (future) Setting to prefer extended or normal highlights. *(user idea, 2026-10-11)*

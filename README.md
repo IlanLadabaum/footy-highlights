@@ -42,9 +42,9 @@ Restricting the key means that if it leaks, it can't be used for anything else.
 
 ### 5. Add the key to the app
 
-Open Footy Highlights. On first launch it asks for the key; later you can change it under **Footy Highlights → Settings… → API Keys** (⌘,). Keys are stored in your macOS Keychain, never in a file.
+Open Footy Highlights. On first launch it asks for the key; later you can change it under **Footy Highlights → Settings… → API Keys** (⌘,). Keys are saved on your Mac in a private file that only your user account can read (`~/Library/Application Support/io.github.ilanladabaum.footyhighlights/api-keys.json`).
 
-**Developers** running a Debug build from Xcode can instead put keys in a git-ignored `.env` in the project folder (Debug builds read it before the Keychain):
+**Developers** running a Debug build from Xcode can instead put keys in a git-ignored `.env` in the project folder (Debug builds read it before the saved keys):
 
 ```bash
 cp .env.example .env

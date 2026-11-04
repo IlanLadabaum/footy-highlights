@@ -29,7 +29,7 @@
      - Hovering also shows a "More videos" thumbnail.
      - Mitigation: choose sources whose titles carry no spoilers (see #7). (With YouTube's controls, the mouse is over the video whenever the user uses them.)
 7. **Source titles that spoil.** Because of #6, a spoiler in the *original* title can flash during playback. Clean sources: NBC, CBS, beIN, USA Sports. Problem sources: ESPN FC (teaser prefixes), LALIGA official (scores; also can't be embedded, so ruled out). YouTube's in-player title can't be hidden or replaced legally (verified 2026-10-11). La Liga uses ESPN FC (decided); the browser fallback for skipped matches can expose official titles with scores, so it carries a warning. [DECIDED] Videos from problem sources get a visible "may show spoiler at start" flag.
-8. **Normal vs extended versions.** [DECIDED] Prefer extended. [DECIDED] Show one entry per match, so whether an extended cut exists isn't visible as a separate item.
+8. **Normal vs extended versions.** [DECIDED] Prefer extended. [DECIDED] Show one entry per match, so whether an extended cut exists isn't visible as a separate item. [DECIDED] (2026-10-21, supersedes the line before) A per-match extended/normal toggle on matches that have both cuts; revealing which matches have an extended cut is accepted. See [Video Sources](Video%20Sources.md).
 9. **Order and timing.** [OPEN] Probably low risk.
 10. **League table (future).** Pre-round standings only; results are applied only for matches the user reveals. See [League Table Context](League%20Table%20Context.md).
 11. **Notifications / badges.** If added later, they must use neutral wording.

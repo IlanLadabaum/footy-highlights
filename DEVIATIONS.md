@@ -89,3 +89,26 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D50. Turning a league off stops fetching its football-data fixtures and any YouTube channel used only by that league.** A channel shared with a followed league (CBS for UCL, Serie A and Carabao Cup) is still scanned, since one scan covers all three; the turned-off league is simply hidden. Turning a league on triggers an immediate refresh, ignoring the 15-minute rule.
 - **D51. The "Add/remove leagues" button sits at the top-left of the home page toolbar.** The sheet and the Settings → Leagues tab apply changes immediately, and each league shows its source channel underneath.
 - **D52. Team results box:** opens when you click anywhere on a team's table row, as a popover next to the row. Close with ✕, Esc or by clicking outside. The title reads "<Team>: results before <round>". The selected team is shown in bold. About 8 lines are visible before scrolling. A shoot-out win counts as a win (green).
+
+### Loading banner, player memory, extended/normal, La Liga sources (2026-10-21)
+- **D53. The "Loading highlights…" banner shows only when a refresh actually fetches.** A launch or Refresh inside the 15-minute window does nothing, so no banner appears. It sits at the top centre of the browsing screens and never appears on the player screen, because nothing is drawn over the player.
+- **D54. Player memory covers volume, mute and speed only.** These are the only settings YouTube's documented API can read and set. Quality can't be remembered (no documented call). Captions are waiting on your answer. A change is saved once the saved values have been applied to the current video (after about 1.5 s), so a new video starting at defaults can't overwrite them.
+- **D55. The queue uses each match's cut as selected when the video plays, not when it was queued.** The choice is remembered per match, so switching the toggle after queueing changes what the queue plays. The plan said "selected when it was opened or queued"; storing the cut in the queue as well is a small change if you want that instead.
+- **D56. The toggle is a small Extended | Normal switch on its own line under the match details,** with the selected cut's length beside it (hidden when "Hide video durations" is on). The default cut is in Settings → Advanced.
+- **D57. How ESPN Deportes videos are matched.** Titles have no fixed format, so a video counts as a La Liga highlight when:
+  - the title contains "LaLiga";
+  - it's 8–25 minutes long;
+  - it names both teams of exactly one fixture that kicked off up to 5 days before it was posted.
+
+  Measured live: 85 of 89 finished matches. For 14 big-club matches, Deportes posted more than one long video naming both teams (player features, show segments). The app picks the longest, which is usually the one posted about 2 hours after kickoff. **This is a best guess I couldn't confirm without reading spoiler titles.** If a Barça or Real Madrid video turns out not to be the highlights, tell me.
+- **D58. The source-order setting is in Settings → Leagues**, under the league list. Each league's subtitle shows its order ("ESPN FC, then ESPN Deportes"). Picking an order that adds a source fetches it straight away. Without a football-data key, Deportes is greyed out there and skipped; it isn't scanned at all, which saves quota.
+- **D59. The ESPN Deportes channel is busy:** the first scan costs about 55 extra YouTube units, then it's incremental. It's only scanned when La Liga is followed and Deportes is in its source order.
+- **D60. Files I edited were also reformatted with swift-format** (the repo's configured formatter), so their diffs include some line-wrapping changes. Files I didn't otherwise touch were left as they were.
+
+### Key file and Sparkle updates (2026-11-01)
+- **D61. The key file is `~/Library/Application Support/io.github.ilanladabaum.footyhighlights/api-keys.json`** (permissions 600: only your account can read it). On first launch, keys saved in the Keychain are moved into the file once and then deleted from the Keychain.
+- **D62. Sparkle reads its update feed from the latest GitHub Release** (`…/releases/latest/download/appcast.xml`), so each release attaches its own `appcast.xml`. No separate website or GitHub Pages is needed. The feed lists only the newest version.
+- **D63. Updates are off in Debug builds and in the snapshot/test modes**, so developer builds never replace themselves. They're also off until the public key is in `project.yml`. Settings explains why the button is greyed out.
+- **D64. "Check for Updates…" sits in Settings → Advanced, in an "Updates" section** with the app version and when it last checked. Sparkle's automatic-install checkbox is hidden, because it always asks first.
+- **D65. The DMG is a plain compressed disk image** containing the app and an Applications shortcut to drag it onto. No custom background yet (M5 polish).
+- **D66. `release.sh` uploads nothing unless you pass `--publish`.** Release notes are optional: put them in `build/dist/FootyHighlights-<version>.md` and they're attached to the release and shown in the update dialog.

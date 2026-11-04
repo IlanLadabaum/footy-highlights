@@ -22,8 +22,9 @@ public final class VideoRecord {
     }
 
     var video: Video {
-        Video(id: videoId, channelKey: channelKey, originalTitle: originalTitle, publishedAt: publishedAt,
-              durationSeconds: durationSeconds)
+        Video(
+            id: videoId, channelKey: channelKey, originalTitle: originalTitle, publishedAt: publishedAt,
+            durationSeconds: durationSeconds)
     }
 }
 
@@ -56,6 +57,18 @@ public final class FlagRecord {
         watched = flags.watched
         revealed = flags.revealed
         updatedAt = date
+    }
+}
+
+/// The extended / normal cut picked on a match row ("f:<fixture>").
+@Model
+public final class CutChoiceRecord {
+    @Attribute(.unique) public var key: String
+    public var cut: String
+
+    init(key: String, cut: HighlightCut) {
+        self.key = key
+        self.cut = cut.rawValue
     }
 }
 

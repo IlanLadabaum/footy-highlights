@@ -1,3 +1,4 @@
+import FootyKit
 import Foundation
 import Observation
 import WebKit
@@ -30,10 +31,16 @@ final class PlayerController: NSObject {
     let webView: WKWebView
     private(set) var videoId: String
     private let muted: Bool
+    /// The viewer's volume / mute / speed, remembered across videos, relaunches and updates.
+    private var preferences: PlayerPreferences
+    private let defaults: UserDefaults?
 
-    init(videoId: String, muted: Bool = false) {
+    /// `muted` is for the headless test mode: it plays muted and doesn't touch the saved preferences.
+    init(videoId: String, muted: Bool = false, defaults: UserDefaults = .standard) {
         self.videoId = videoId
         self.muted = muted
+        self.defaults = muted ? nil : defaults
+        preferences = PlayerPreferences.load(from: defaults)
         let configuration = WKWebViewConfiguration()
         configuration.mediaTypesRequiringUserActionForPlayback = []
         configuration.websiteDataStore = .default()
@@ -53,7 +60,8 @@ final class PlayerController: NSObject {
     func start() {
         phase = .loading
         currentTime = 0
-        webView.loadHTMLString(PlayerPage.html(videoId: videoId, muted: muted), baseURL: PlayerPage.baseURL)
+        let html = PlayerPage.html(videoId: videoId, muted: muted, preferences: preferences)
+        webView.loadHTMLString(html, baseURL: PlayerPage.baseURL)
     }
 
     /// Switches to another video in the same player (keeps YouTube's full screen between queued videos).
@@ -65,7 +73,8 @@ final class PlayerController: NSObject {
             start()
         } else {
             phase = .loading
-            call("footy.load('\(videoId.filter { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" })')")
+            let safeId = videoId.filter { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" }
+            call("footy.load('\(safeId)', \(preferences.playbackRate))")
         }
     }
 
@@ -107,6 +116,16 @@ final class PlayerController: NSObject {
         webView.loadHTMLString("", baseURL: nil)
     }
 
+    /// Saves the player's current volume / mute / speed when the viewer changed them.
+    private func remember(rate: Double?) {
+        guard let defaults, phase == .playing || phase == .paused else { return }
+        let current = PlayerPreferences(
+            volume: Int(volume.rounded()), muted: isMuted, playbackRate: rate ?? preferences.playbackRate)
+        guard current != preferences else { return }
+        preferences = current
+        current.save(to: defaults)
+    }
+
     private func call(_ script: String) {
         webView.evaluateJavaScript(script, completionHandler: nil)
     }
@@ -128,6 +147,7 @@ final class PlayerController: NSObject {
             duration = message["duration"] as? Double ?? duration
             if let volume = message["volume"] as? Double { self.volume = volume }
             if let muted = message["muted"] as? Bool { isMuted = muted }
+            if message["settled"] as? Bool == true { remember(rate: message["rate"] as? Double) }
         case "ended":
             onEvent?("ended")
             if let next = nextVideo?() {

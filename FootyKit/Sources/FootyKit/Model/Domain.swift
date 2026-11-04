@@ -136,6 +136,12 @@ public struct Video: Codable, Hashable, Sendable, Identifiable {
 }
 
 /// Per-match user state. Keyed by fixture ID when the match is known, otherwise by video ID.
+/// A match's highlight video when the channel posts both a normal and an extended cut.
+public enum HighlightCut: String, Codable, Hashable, Sendable, CaseIterable {
+    case extended
+    case normal
+}
+
 public struct MatchFlags: Codable, Hashable, Sendable {
     public var watched: Bool
     public var revealed: Bool

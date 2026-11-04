@@ -84,6 +84,18 @@ public struct TeamNames: Sendable {
         return best
     }
 
+    /// Whether a free-form title names the team (any of its names or aliases, as whole words).
+    public func mentions(_ text: String, team: Team) -> Bool {
+        let words = Self.tokens(text)
+        var forms = candidateNames(for: team)
+        for (alias, canonical) in aliases where forms.contains(canonical) { forms.insert(alias) }
+        return forms.contains { form in
+            let phrase = form.split(separator: " ").map(String.init)
+            guard !phrase.isEmpty, phrase.count <= words.count else { return false }
+            return (0...(words.count - phrase.count)).contains { Array(words[$0..<$0 + phrase.count]) == phrase }
+        }
+    }
+
     /// Tidy a team name parsed from a title for display when there's no fixture: trims and drops trailing "(edited)".
     public static func cleanParsed(_ raw: String) -> String {
         var name = raw.trimmingCharacters(in: .whitespacesAndNewlines)

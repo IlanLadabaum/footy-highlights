@@ -1,5 +1,37 @@
 import Foundation
 
+/// The viewer's choices that change which video a match plays.
+public struct LibraryOptions: Sendable, Equatable {
+    /// Which cut to show when a match has both (Settings).
+    public var defaultCut: HighlightCut
+    /// Competition ID → in-app channels in the viewer's order (first = preferred, the rest fallbacks).
+    /// Missing = the config's order.
+    public var sourceOrder: [String: [String]]
+    /// Per-match cut picked on the row (keyed by the entry's ID).
+    public var cutChoices: [MatchKey: HighlightCut]
+    /// Without fixture data, channels that need it (free-form titles) aren't used.
+    public var hasFixtureData: Bool
+
+    public init(
+        defaultCut: HighlightCut = .extended, sourceOrder: [String: [String]] = [:],
+        cutChoices: [MatchKey: HighlightCut] = [:], hasFixtureData: Bool = true
+    ) {
+        self.defaultCut = defaultCut
+        self.sourceOrder = sourceOrder
+        self.cutChoices = cutChoices
+        self.hasFixtureData = hasFixtureData
+    }
+
+    /// In-app channels for the competition, in the order to try them.
+    public func channels(for competition: CompetitionConfig, config: AppConfig) -> [String] {
+        let configured = competition.playableChannels
+        let ordered = sourceOrder[competition.id]?.filter(configured.contains) ?? configured
+        return (ordered.isEmpty ? configured : ordered).filter { key in
+            hasFixtureData || !(config.channels[key]?.needsFixtureData ?? false)
+        }
+    }
+}
+
 public struct RoundID: Hashable, Sendable, Codable {
     public var competitionId: String
     /// "md:<stage>:<matchday>", "title:<round>" or "date:<yyyy-MM-dd>".
@@ -30,8 +62,12 @@ public struct MatchEntry: Identifiable, Hashable, Sendable {
     public var competitionId: String
     public var roundId: RoundID
     public var fixture: Fixture?
-    /// The video played in the app (extended cut preferred).
+    /// The video played in the app: the selected cut from the first source (in the viewer's order) that has one.
     public var video: Video?
+    /// Both cuts, when the source posted a normal and an extended one; empty otherwise.
+    public var cutOptions: [HighlightCut: Video] = [:]
+    /// Which of `cutOptions` `video` is.
+    public var selectedCut: HighlightCut?
     /// Non-embeddable video offered only as "Open on YouTube (may show score)".
     public var browserFallbackVideo: Video?
     public var homeName: String
@@ -51,6 +87,8 @@ public struct MatchEntry: Identifiable, Hashable, Sendable {
     public var firstLeg: FirstLegInfo?
 
     public var isPlayable: Bool { availability == .playable && video != nil }
+    /// The row offers the extended / normal toggle.
+    public var hasCutChoice: Bool { cutOptions.count > 1 }
     public var isUnwatched: Bool { isPlayable && !flags.watched }
     /// The score may be shown (the user revealed it). Watching alone doesn't show it in the list.
     public var scoreVisible: Bool { flags.revealed && fixture?.score != nil }

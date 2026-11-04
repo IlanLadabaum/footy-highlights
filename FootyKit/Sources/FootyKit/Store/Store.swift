@@ -11,6 +11,7 @@ public final class Store {
 
     public static let schema = Schema([
         VideoRecord.self, FixtureRecord.self, FlagRecord.self, SyncRecord.self, StandingsRecord.self,
+        CutChoiceRecord.self,
     ])
 
     /// `inMemory` for tests and the CLI; otherwise the default on-disk store in Application Support.
@@ -45,8 +46,10 @@ public final class Store {
 
     /// Replaces a competition-season's fixtures with a fresh download.
     public func replaceFixtures(_ fixtures: [Fixture], competitionId: String, season: Int) {
-        let existing = (try? context.fetch(FetchDescriptor<FixtureRecord>(
-            predicate: #Predicate { $0.competitionId == competitionId && $0.season == season }))) ?? []
+        let existing =
+            (try? context.fetch(
+                FetchDescriptor<FixtureRecord>(
+                    predicate: #Predicate { $0.competitionId == competitionId && $0.season == season }))) ?? []
         var byId = Dictionary(existing.map { ($0.fixtureId, $0) }, uniquingKeysWith: { first, _ in first })
         for fixture in fixtures {
             guard let payload = try? encoder.encode(fixture) else { continue }
@@ -103,7 +106,8 @@ public final class Store {
     /// Deletes cached YouTube data not refreshed for 30 days (YouTube API policy DP III.E.4.c).
     public func purgeStaleVideos(now: Date) {
         let limit = now.addingTimeInterval(-30 * 86_400)
-        let stale = (try? context.fetch(FetchDescriptor<VideoRecord>(predicate: #Predicate { $0.lastSeenAt < limit }))) ?? []
+        let stale =
+            (try? context.fetch(FetchDescriptor<VideoRecord>(predicate: #Predicate { $0.lastSeenAt < limit }))) ?? []
         for record in stale { context.delete(record) }
         if !stale.isEmpty { save() }
     }
@@ -156,6 +160,30 @@ public final class Store {
         }
     }
 
+    // MARK: Cut choices
+
+    public func cutChoices() -> [MatchKey: HighlightCut] {
+        let records = (try? context.fetch(FetchDescriptor<CutChoiceRecord>())) ?? []
+        var result: [MatchKey: HighlightCut] = [:]
+        for record in records {
+            if let key = MatchKey(string: record.key), let cut = HighlightCut(rawValue: record.cut) {
+                result[key] = cut
+            }
+        }
+        return result
+    }
+
+    public func setCut(_ cut: HighlightCut, for key: MatchKey) {
+        let wanted = key.description
+        let existing = try? context.fetch(FetchDescriptor<CutChoiceRecord>(predicate: #Predicate { $0.key == wanted }))
+        if let record = existing?.first {
+            record.cut = cut.rawValue
+        } else {
+            context.insert(CutChoiceRecord(key: wanted, cut: cut))
+        }
+        save()
+    }
+
     // MARK: Sync markers
 
     public func syncDate(_ key: String) -> Date? {
@@ -167,7 +195,9 @@ public final class Store {
     }
 
     public func setSync(_ key: String, date: Date, note: String? = nil) {
-        if let record = (try? context.fetch(FetchDescriptor<SyncRecord>(predicate: #Predicate { $0.key == key })))?.first {
+        if let record = (try? context.fetch(FetchDescriptor<SyncRecord>(predicate: #Predicate { $0.key == key })))?
+            .first
+        {
             record.date = date
             record.note = note
         } else {
@@ -180,7 +210,9 @@ public final class Store {
 
     public func deductions(code: String, season: Int) -> [Int: Int] {
         let key = "\(code):\(season)"
-        guard let record = (try? context.fetch(FetchDescriptor<StandingsRecord>(predicate: #Predicate { $0.key == key })))?.first,
+        guard
+            let record =
+                (try? context.fetch(FetchDescriptor<StandingsRecord>(predicate: #Predicate { $0.key == key })))?.first,
             let rows = try? decoder.decode([StandingsRow].self, from: record.payload)
         else { return [:] }
         return Dictionary(rows.filter { $0.deduction > 0 }.map { ($0.teamId, $0.deduction) }, uniquingKeysWith: max)
@@ -188,13 +220,16 @@ public final class Store {
 
     public func standingsFetchedAt(code: String, season: Int) -> Date? {
         let key = "\(code):\(season)"
-        return (try? context.fetch(FetchDescriptor<StandingsRecord>(predicate: #Predicate { $0.key == key })))?.first?.fetchedAt
+        return (try? context.fetch(FetchDescriptor<StandingsRecord>(predicate: #Predicate { $0.key == key })))?.first?
+            .fetchedAt
     }
 
     public func setStandings(_ rows: [StandingsRow], code: String, season: Int, at date: Date) {
         let key = "\(code):\(season)"
         guard let payload = try? encoder.encode(rows) else { return }
-        if let record = (try? context.fetch(FetchDescriptor<StandingsRecord>(predicate: #Predicate { $0.key == key })))?.first {
+        if let record = (try? context.fetch(FetchDescriptor<StandingsRecord>(predicate: #Predicate { $0.key == key })))?
+            .first
+        {
             record.payload = payload
             record.fetchedAt = date
         } else {

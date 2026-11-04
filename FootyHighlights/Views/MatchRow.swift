@@ -32,6 +32,7 @@ struct MatchRow: View {
                     }
                 }
                 details
+                if entry.hasCutChoice { cutPicker }
                 availabilityLine
                 if countedInTable {
                     Text("Played earlier than the rest of the round, so it's already in the table")
@@ -82,7 +83,7 @@ struct MatchRow: View {
     private var details: some View {
         HStack(spacing: 6) {
             Text(Formatting.day(entry.date))
-            if let seconds = entry.video?.durationSeconds, !hideDurations {
+            if let seconds = entry.video?.durationSeconds, !hideDurations, !entry.hasCutChoice {
                 Text("·")
                 Label(Formatting.duration(seconds), systemImage: "film")
                     .labelStyle(.titleAndIcon)
@@ -104,6 +105,32 @@ struct MatchRow: View {
         }
         .font(.caption)
         .foregroundStyle(.secondary)
+    }
+
+    /// Extended / normal, when the source posted both. Shows the selected cut's length; queueing and Play use it.
+    private var cutPicker: some View {
+        HStack(spacing: 8) {
+            Picker(
+                "Version",
+                selection: Binding(get: { entry.selectedCut ?? model.defaultCut }, set: { model.setCut(entry, $0) })
+            ) {
+                Text("Extended").tag(HighlightCut.extended)
+                Text("Normal").tag(HighlightCut.normal)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .controlSize(.small)
+            .fixedSize()
+            .help("This match has a normal and an extended highlight. Play and Queue use the one selected here.")
+            if let seconds = entry.video?.durationSeconds, !hideDurations {
+                Label(Formatting.duration(seconds), systemImage: "film")
+                    .labelStyle(.titleAndIcon)
+                    .monospacedDigit()
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .help("Length of the selected version")
+            }
+        }
     }
 
     @ViewBuilder private var availabilityLine: some View {
@@ -146,13 +173,16 @@ struct MatchRow: View {
                 Label("Open on YouTube (may show score)", systemImage: "arrow.up.right.square")
             }
             .buttonStyle(.bordered)
-            .help("This video can't play inside the app. YouTube shows its original title, which may include the score.")
+            .help(
+                "This video can't play inside the app. YouTube shows its original title, which may include the score.")
         }
     }
 
     @ViewBuilder private var contextMenu: some View {
         if entry.isPlayable {
-            Button(entry.flags.watched ? "Mark Unwatched" : "Mark Watched") { model.setWatched([entry], !entry.flags.watched) }
+            Button(entry.flags.watched ? "Mark Unwatched" : "Mark Watched") {
+                model.setWatched([entry], !entry.flags.watched)
+            }
             Button(model.isQueued(entry) ? "Remove from Queue" : "Add to Queue") { model.toggleQueued(entry) }
         }
         if entry.video != nil || entry.browserFallbackVideo != nil {

@@ -168,6 +168,8 @@ struct PlayerScreen: View {
             first = model.entry(key)
             // Watched works like email read status: opening the video marks it watched.
             if let first, !first.flags.watched { model.setWatched([first], true) }
+            // Watching a queued match outside the queue takes it off the queue.
+            if let first { model.dequeue(first.id) }
         case .queue:
             first = model.popQueue()
         }

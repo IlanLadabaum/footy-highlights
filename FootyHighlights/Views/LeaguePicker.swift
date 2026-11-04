@@ -7,10 +7,12 @@ struct LeagueToggleList: View {
 
     var body: some View {
         ForEach(model.config.competitionsByPriority) { competition in
-            Toggle(isOn: Binding(
-                get: { model.isEnabled(competition.id) },
-                set: { model.setLeague(competition.id, enabled: $0) }
-            )) {
+            Toggle(
+                isOn: Binding(
+                    get: { model.isEnabled(competition.id) },
+                    set: { model.setLeague(competition.id, enabled: $0) }
+                )
+            ) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(competition.name)
                     Text(sourceNote(competition)).font(.caption).foregroundStyle(.secondary)
@@ -20,9 +22,8 @@ struct LeagueToggleList: View {
     }
 
     private func sourceNote(_ competition: CompetitionConfig) -> String {
-        let channels = competition.sources.filter { $0.effectiveRole == .primary }
-            .compactMap { model.config.channels[$0.channel]?.name }
-        return "Highlights from " + channels.joined(separator: ", ")
+        let channels = model.sources(for: competition).compactMap { model.config.channels[$0]?.name }
+        return "Highlights from " + channels.joined(separator: ", then ")
     }
 }
 
@@ -61,17 +62,20 @@ struct FirstLeagueChoiceSheet: View {
             .padding(20)
             Form {
                 ForEach(model.config.competitionsByPriority) { competition in
-                    Toggle(competition.name, isOn: Binding(
-                        get: { chosen.contains(competition.id) },
-                        set: { on in
-                            if on { chosen.insert(competition.id) } else { chosen.remove(competition.id) }
-                        }))
+                    Toggle(
+                        competition.name,
+                        isOn: Binding(
+                            get: { chosen.contains(competition.id) },
+                            set: { on in
+                                if on { chosen.insert(competition.id) } else { chosen.remove(competition.id) }
+                            }))
                 }
             }
             .formStyle(.grouped)
             HStack {
                 Button(chosen.count == model.config.competitions.count ? "Select none" : "Select all") {
-                    chosen = chosen.count == model.config.competitions.count ? [] : Set(model.config.competitions.map(\.id))
+                    chosen =
+                        chosen.count == model.config.competitions.count ? [] : Set(model.config.competitions.map(\.id))
                 }
                 Spacer()
                 Button("Continue") { model.setLeagues(chosen) }
@@ -95,7 +99,59 @@ struct LeagueSettings: View {
             } footer: {
                 Text("Turned-off leagues are hidden from the home page and not downloaded, which saves API quota.")
             }
+            SourceOrderSettings()
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Settings → Leagues: for leagues with more than one in-app source, which to use first and whether to fall back.
+struct SourceOrderSettings: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        ForEach(model.config.competitionsByPriority.filter { !$0.sourceOrderOptions.isEmpty }) { competition in
+            Section {
+                Picker(
+                    "Highlights from",
+                    selection: Binding(
+                        get: { model.sources(for: competition) },
+                        set: { model.setSources($0, for: competition) })
+                ) {
+                    ForEach(competition.sourceOrderOptions, id: \.self) { order in
+                        Text(label(order)).tag(order)
+                    }
+                }
+                ForEach(competition.playableChannels, id: \.self) { key in
+                    if let channel = model.config.channels[key] {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(channel.name).font(.callout.weight(.medium))
+                            Text(channel.sourceNote ?? "").font(.caption).foregroundStyle(.secondary)
+                        }
+                        .opacity(unavailable(channel) ? 0.5 : 1)
+                    }
+                }
+                if competition.playableChannels.contains(where: { model.config.channels[$0].map(unavailable) ?? false })
+                {
+                    Text("Add a football-data.org key in the API Keys tab to use the sources that need it.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                Text("\(competition.name) highlight sources")
+            } footer: {
+                Text("The first source is used where it has the match; the second fills in the matches it misses.")
+            }
+        }
+    }
+
+    private func label(_ order: [String]) -> String {
+        let names = order.compactMap { model.config.channels[$0]?.name }
+        return names.count == 1 ? "\(names[0]) only" : names.joined(separator: ", then ")
+    }
+
+    /// Needs fixture data the viewer hasn't set up.
+    private func unavailable(_ channel: ChannelConfig) -> Bool {
+        channel.needsFixtureData && !model.hasFootballDataKey
     }
 }
