@@ -24,6 +24,14 @@ enum Formatting {
         return "\(day(start)) – \(day(end))"
     }
 
+    /// "0.1.0 (1)" from Info.plist.
+    static var appVersion: String {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let short = info["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info["CFBundleVersion"] as? String ?? "?"
+        return "\(short) (\(build))"
+    }
+
     static func relative(_ date: Date) -> String {
         date.formatted(.relative(presentation: .named))
     }

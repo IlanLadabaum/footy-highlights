@@ -14,6 +14,8 @@ struct FootyHighlightsApp: App {
                 DispatchQueue.main.async { PlayerTestMode.run() }
             }
         #endif
+        // Starts Sparkle's daily check (Release builds only).
+        _ = Updater.shared
     }
 
     var body: some Scene {

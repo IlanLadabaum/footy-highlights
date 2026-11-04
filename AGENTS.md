@@ -34,6 +34,7 @@ Build agents: the approved v1 milestones are in [`Plan/Build Plan.md`](Plan/Buil
 ├── FootyHighlightsTests/      # App-level tests
 ├── FootyKit/                  # Swift package: data layer + footy-cli + unit tests
 ├── scripts/build-app.sh       # Release build (basis for the DMG); --install copies to /Applications
+├── scripts/release.sh         # DMG + Sparkle appcast; --publish creates the GitHub Release
 ├── DEVIATIONS.md              # Agent decisions/deviations awaiting the developer's review
 ├── LICENSE                    # MIT
 ├── .env                       # Secrets (git-ignored) — YOUTUBE_API_KEY, FOOTBALL_DATA_API_KEY
@@ -65,6 +66,8 @@ While testing against live data you will see real scores and results. **Never pu
 - **Build + test the app:** `xcodebuild -project FootyHighlights.xcodeproj -scheme FootyHighlights -destination 'platform=macOS' -derivedDataPath build/DerivedData test`
 
 - **Release app:** `scripts/build-app.sh` builds a universal (Apple Silicon + Intel), ad-hoc-signed Release app into `build/Release/`; `--install` also copies it to `/Applications`. This is the app that goes into the DMG (M5). The version comes from `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `project.yml`.
+
+- **Publish a release:** `scripts/release.sh` builds the app, the DMG and the Sparkle `appcast.xml` into `build/dist/` (nothing uploaded); `--publish` also creates the GitHub Release `v<version>` (outward-facing: only when the developer asks). Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml` first. Updates use Sparkle (feed: `appcast.xml` on the latest GitHub Release); its EdDSA private key lives in the developer's login Keychain, and only the public key (`SPARKLE_PUBLIC_ED_KEY` in `project.yml`) is in the repo.
 
 - **Test the data layer (fast):** `swift test --package-path FootyKit`
 

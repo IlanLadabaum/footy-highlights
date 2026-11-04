@@ -111,8 +111,31 @@ struct AdvancedSettings: View {
             )
             .font(.caption)
             .foregroundStyle(.secondary)
+            UpdatesSection()
         }
         .formStyle(.grouped)
     }
 }
 
+/// Settings → Advanced: the app version and a manual "Check for Updates…" (Sparkle also checks daily on launch).
+struct UpdatesSection: View {
+    @State private var updater = Updater.shared
+
+    var body: some View {
+        Section("Updates") {
+            HStack {
+                Text("Version \(Formatting.appVersion)")
+                Spacer()
+                Button("Check for Updates…") { updater.checkForUpdates() }
+                    .disabled(!updater.canCheck)
+            }
+            Text(caption).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var caption: String {
+        if let reason = updater.unavailableReason { return reason }
+        let last = updater.lastCheck.map { " Last checked \(Formatting.relative($0))." } ?? ""
+        return "Checks for a new version once a day when the app opens, and asks before installing." + last
+    }
+}

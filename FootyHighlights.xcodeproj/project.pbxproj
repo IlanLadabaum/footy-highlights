@@ -18,6 +18,7 @@
 		440B7BD92022C8888B79FEFB /* MatchRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1576CF8AB4FC62796CDC153B /* MatchRow.swift */; };
 		4709C8AD905494C0293491BA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAE6DA0330CCDDD293C293B8 /* Assets.xcassets */; };
 		4C5CF9A308881CF228D2A514 /* TablePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 098A0FFE7E25A1DCD82E1182 /* TablePanel.swift */; };
+		4FD5E813B4DDCF76AE3F9EF4 /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4481A4059F5A60A1E8BD446 /* Updater.swift */; };
 		50CCBCEDCEED971D8FD3A2DF /* RoundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BA01C8D6D3C6C732FE3F356 /* RoundView.swift */; };
 		647089E0184B5D46CF0B9BAE /* PlayerTestMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 737D40860C5D78779FD1E00C /* PlayerTestMode.swift */; };
 		6682AA3B6F736AF79B929811 /* LeaguePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F4E1A3F53BBD89061A6766 /* LeaguePicker.swift */; };
@@ -31,6 +32,7 @@
 		B8F55657189BC9D4C4DF765F /* SnapshotMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B00E7D9484D2B91D88C0206 /* SnapshotMode.swift */; };
 		BC1A01F65C494FA63D7B3B11 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 4C83EA39860663F0E52A4567 /* .swiftlint.yml */; };
 		C04BE44CB00FE1CEA0DFAD3E /* RoundsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 717F168B9C8ADBE391D25DE3 /* RoundsView.swift */; };
+		CAFD12F9F9B2546156B6084C /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D4F819B71412D0013698365A /* Sparkle */; };
 		D681AC2E66C3783C052C4445 /* Route.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0E2FCB38DFB8067C4BDB2C8 /* Route.swift */; };
 		E4ACA273B013CF6759EF3F2F /* KeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96967AAEBEB17DB21C6B5206 /* KeyManager.swift */; };
 		F114E1B4B5E932C4173165A2 /* PlayerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B07EAE45E1C2D139C1B40ED /* PlayerScreen.swift */; };
@@ -77,6 +79,7 @@
 		E8330FF61EAE366EEBCD8E88 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		EAE6DA0330CCDDD293C293B8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F0F4E1A3F53BBD89061A6766 /* LeaguePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaguePicker.swift; sourceTree = "<group>"; };
+		F4481A4059F5A60A1E8BD446 /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		F53245812469DC6DD7FFB80C /* TeamResultsBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamResultsBox.swift; sourceTree = "<group>"; };
 		FE5E775E6683FBC6634DD58A /* FootyHighlightsTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FootyHighlightsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -87,6 +90,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				71E526787D0F2B684DFB039A /* FootyKit in Frameworks */,
+				CAFD12F9F9B2546156B6084C /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -108,6 +112,7 @@
 			children = (
 				E81B3EE523B221F4CB6CC85E /* FootyHighlightsApp.swift */,
 				E0E2FCB38DFB8067C4BDB2C8 /* Route.swift */,
+				F4481A4059F5A60A1E8BD446 /* Updater.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -247,6 +252,7 @@
 			name = FootyHighlights;
 			packageProductDependencies = (
 				F10AF55B8196CE32A7C1E9D3 /* FootyKit */,
+				D4F819B71412D0013698365A /* Sparkle */,
 			);
 			productName = FootyHighlights;
 			productReference = 15C2D6D0A5B59824966D7A31 /* FootyHighlights.app */;
@@ -279,6 +285,7 @@
 			mainGroup = 2544A17EDCEA1422F754F7D7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				4527D43637464621506F2266 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				8F02FDD3F5B362DE56DB4499 /* XCLocalSwiftPackageReference "FootyKit" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -348,6 +355,7 @@
 				B8F55657189BC9D4C4DF765F /* SnapshotMode.swift in Sources */,
 				4C5CF9A308881CF228D2A514 /* TablePanel.swift in Sources */,
 				371E01C263A7DA493C1065C8 /* TeamResultsBox.swift in Sources */,
+				4FD5E813B4DDCF76AE3F9EF4 /* Updater.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -461,6 +469,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.ilanladabaum.footyhighlights;
 				PRODUCT_NAME = "Footy Highlights";
 				SDKROOT = auto;
+				SPARKLE_PUBLIC_ED_KEY = "";
 				SUPPORTED_PLATFORMS = macosx;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -509,6 +518,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.ilanladabaum.footyhighlights;
 				PRODUCT_NAME = "Footy Highlights";
 				SDKROOT = auto;
+				SPARKLE_PUBLIC_ED_KEY = "";
 				SUPPORTED_PLATFORMS = macosx;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -620,7 +630,23 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		4527D43637464621506F2266 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		D4F819B71412D0013698365A /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4527D43637464621506F2266 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
 		F10AF55B8196CE32A7C1E9D3 /* FootyKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FootyKit;

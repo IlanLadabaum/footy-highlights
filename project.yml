@@ -12,6 +12,9 @@ settings:
 packages:
   FootyKit:
     path: FootyKit
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
 targets:
   FootyHighlights:
     type: application
@@ -21,6 +24,8 @@ targets:
     dependencies:
       - package: FootyKit
         product: FootyKit
+      - package: Sparkle
+        product: Sparkle
     info:
       path: FootyHighlights/Info.plist
       properties:
@@ -28,6 +33,13 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.sports
+        # Sparkle updates: feed attached to the latest GitHub Release, daily check, ask before installing.
+        SUFeedURL: https://github.com/IlanLadabaum/footy-highlights/releases/latest/download/appcast.xml
+        SUPublicEDKey: $(SPARKLE_PUBLIC_ED_KEY)
+        SUEnableAutomaticChecks: true
+        SUScheduledCheckInterval: 86400
+        SUAutomaticallyUpdate: false
+        SUAllowsAutomaticUpdates: false
         # Debug builds read .env from the project folder (developer convenience).
         FHProjectDir: $(FH_PROJECT_DIR)
     settings:
@@ -40,6 +52,8 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         FH_PROJECT_DIR: ""
+        # Public half of the Sparkle EdDSA key (`generate_keys -p`). The private key never goes in the repo.
+        SPARKLE_PUBLIC_ED_KEY: ""
       configs:
         Debug:
           FH_PROJECT_DIR: $(SRCROOT)
