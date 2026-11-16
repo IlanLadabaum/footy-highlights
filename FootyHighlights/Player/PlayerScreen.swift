@@ -4,26 +4,25 @@ import SwiftUI
 /// Dedicated player screen using YouTube's own controls (subtitles, quality, full screen, keyboard).
 /// The app adds nothing on top of the video; its own controls sit in a bar below it.
 struct PlayerScreen: View {
-    enum Mode: Hashable {
-        case single(MatchKey)
-        /// Plays the queue from the top, continuing automatically.
-        case queue
-    }
+    typealias Mode = PlaybackSession.Mode
 
     let mode: Mode
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
-    @State private var controller: PlayerController?
-    /// The match currently loaded in the player.
-    @State private var currentKey: MatchKey?
     @State private var confirmOriginalTitle = false
     @State private var showOriginalTitle = false
     @State private var showTable = false
     @State private var showRestore = false
 
+    /// This screen's playback (not while it's in the mini player).
+    private var session: PlaybackSession? {
+        guard let session = model.playback, session.mode == mode, !session.isMini else { return nil }
+        return session
+    }
+
     var body: some View {
-        let entry = currentKey.flatMap { model.entry($0) }
+        let entry = session.flatMap { model.entry($0.currentKey) }
         let tableRound = entry.flatMap { model.library.round($0.roundId) }.flatMap {
             $0.layout == .withTable ? $0 : nil
         }
@@ -62,7 +61,7 @@ struct PlayerScreen: View {
             }
         }
         .onAppear(perform: begin)
-        .onDisappear { controller?.stop() }
+        .onDisappear(perform: end)
         .confirmationDialog("Show the original YouTube title?", isPresented: $confirmOriginalTitle) {
             Button("Show Original Title") { showOriginalTitle = true }
             Button("Cancel", role: .cancel) {}
@@ -75,7 +74,7 @@ struct PlayerScreen: View {
                 pick: { key in
                     showRestore = false
                     model.restoreQueue(from: key)
-                    advance()
+                    session?.advance(model: model)
                 },
                 cancel: { showRestore = false })
         }
@@ -91,7 +90,7 @@ struct PlayerScreen: View {
             if let entry { header(entry) }
             ZStack {
                 Color.black
-                if let controller {
+                if let controller = session?.controller {
                     switch controller.phase {
                     case .finished:
                         FinishedPanel(
@@ -100,7 +99,8 @@ struct PlayerScreen: View {
                     case .failed(let code):
                         ErrorPanel(
                             code: code, video: entry?.video, open: { openURL($0) },
-                            skip: mode == .queue && !model.queuedEntries.isEmpty ? { advance() } : nil)
+                            skip: mode == .queue && !model.queuedEntries.isEmpty
+                                ? { session?.advance(model: model) } : nil)
                     default:
                         PlayerWebViewRepresentable(controller: controller)
                             .aspectRatio(16 / 9, contentMode: .fit)
@@ -159,10 +159,20 @@ struct PlayerScreen: View {
                 .keyboardShortcut("t", modifiers: .command)
                 .help("The table as it stood before this round (⌘T)")
             }
+            #if os(macOS)
+                if let phase = session?.controller.phase, phase != .finished {
+                    Button {
+                        MiniPlayerWindow.shared.show(model: model)
+                    } label: {
+                        Label("Mini player", systemImage: "pip.enter")
+                    }
+                    .help("Keep watching in a small window while you browse")
+                }
+            #endif
             if mode == .queue {
                 QueueToolbarButton()
                 Button {
-                    advance()
+                    session?.advance(model: model)
                 } label: {
                     Label("Next", systemImage: "forward.end.fill")
                 }
@@ -176,38 +186,31 @@ struct PlayerScreen: View {
     }
 
     private func begin() {
-        guard controller == nil else { return }
-        let first: MatchEntry?
-        switch mode {
-        case .single(let key):
-            first = model.entry(key)
-            // Watched works like email read status: opening the video marks it watched.
-            if let first, !first.flags.watched { model.setWatched([first], true) }
-            // Watching a queued match outside the queue takes it off the queue.
-            if let first { model.dequeue(first.id) }
-        case .queue:
-            first = model.popQueue()
-        }
-        guard let first, let video = first.video else { return }
-        currentKey = first.id
-        let controller = PlayerController(videoId: video.id)
-        if mode == .queue {
-            // When a video ends, continue with the next one in the same player (keeps full screen).
-            controller.nextVideo = { [model] in
-                guard let next = model.popQueue(), let video = next.video else { return nil }
-                currentKey = next.id
-                return video.id
+        if let existing = model.playback {
+            if existing.mode == mode {
+                // Back from the mini player (or the same match opened again): keep playing here.
+                if existing.isMini {
+                    existing.isMini = false
+                    #if os(macOS)
+                        MiniPlayerWindow.shared.hide()
+                    #endif
+                }
+                return
             }
+            // Something else was playing in the mini player: only one video plays at a time.
+            existing.stop()
+            #if os(macOS)
+                MiniPlayerWindow.shared.hide()
+            #endif
         }
-        self.controller = controller
-        controller.start()
+        model.playback = PlaybackSession(mode: mode, model: model)
     }
 
-    /// Skip: load the next queued video now. It's marked watched as it's reached.
-    private func advance() {
-        guard let controller, let next = model.popQueue(), let video = next.video else { return }
-        currentKey = next.id
-        controller.load(videoId: video.id)
+    /// Leaving the screen stops the video, unless it moved to the mini player.
+    private func end() {
+        guard let session else { return }
+        session.stop()
+        model.playback = nil
     }
 }
 

@@ -127,3 +127,12 @@ Run: overnight build of M0–M4, started 2026-10-11.
 ### "Showing a score marks it watched" setting (2026-11-16)
 - **D74. Off by default**, so nothing changes until you turn it on (Settings → Advanced).
 - **D75. Hiding a score again doesn't unmark watched.** Undo (⌘Z) after revealing restores both the score and the watched state.
+
+### Mini player (2026-11-16)
+- **D76. "Mini player" button** in the bar below the full player (picture-in-picture icon). Pressing it moves the video into the mini window and takes the main window back to the screen you came from.
+- **D77. The mini window has a small title bar** ("Mini Player") to drag it by. Its close button works like Close. The first time, it appears in the bottom-right corner at 480×270; after that it reopens where you left it, at the size you left it.
+- **D78. Minimum size is 356×200** (YouTube requires at least 200×200). That's below the 480×270 the plan sets for the full player, which still applies there.
+- **D79. Opening another match while the mini player is playing stops the mini player** and plays the new match on the full player screen: only one video plays at a time. Opening the same match again just expands it.
+- **D80. When the video (or the queue) finishes in the mini window, it shows "Finished" / "Queue finished"**; press Expand for Watch again or Restore queue. If a video fails, it says so; press Expand for the usual options.
+- **D81. "Keep on top" also keeps the mini player visible across desktops (Spaces) and over full-screen apps.**
+- **D82. New developer check `--mini-test`** (Debug builds): plays one highlight muted offscreen, moves it into the mini player and back, and prints pass/fail states only.

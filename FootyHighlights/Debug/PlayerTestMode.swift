@@ -8,14 +8,81 @@
     /// Prints channel, video ID and player states only (no titles, nothing visual).
     @MainActor
     enum PlayerTestMode {
-        static var enabled: Bool { CommandLine.arguments.contains("--player-test") }
+        static var enabled: Bool { miniTest || CommandLine.arguments.contains("--player-test") }
+        static var miniTest: Bool { CommandLine.arguments.contains("--mini-test") }
 
         static func run() {
             let model = AppModel()
             Task {
                 await model.refresh()
-                pickAndTest(model)
+                if miniTest { await testMiniPlayer(model) } else { pickAndTest(model) }
             }
+        }
+
+        /// `--mini-test`: plays one highlight muted offscreen, moves it into the mini player and back, and checks
+        /// it keeps playing without reloading. Doesn't touch watched flags or the saved mini player frame.
+        static func testMiniPlayer(_ model: AppModel) async {
+            guard
+                let entry = model.library.competitions.flatMap(\.rounds).flatMap(\.matches).first(where: \.isPlayable),
+                let video = entry.video
+            else { return finish("no playable video") }
+            let store = try! Store(inMemory: true)  // swiftlint:disable:this force_try
+            let testModel = AppModel(store: store, defaults: UserDefaults(suiteName: "mini-test")!)
+            let controller = PlayerController(videoId: video.id, muted: true)
+            let main = NSWindow(
+                contentRect: CGRect(x: -5000, y: -5000, width: 640, height: 400), styleMask: [.borderless],
+                backing: .buffered, defer: false)
+            main.contentView = NSHostingView(rootView: PlayerWebViewRepresentable(controller: controller))
+            main.orderFrontRegardless()
+            controller.start()
+            func waitPlaying() async -> Bool {
+                for _ in 0..<80 {
+                    try? await Task.sleep(for: .milliseconds(250))
+                    if controller.phase == .playing, controller.currentTime > 1 { return true }
+                }
+                return false
+            }
+            guard await waitPlaying() else { return finish("never played: \(controller.phase)") }
+            var report = "playing in main"
+            let session = PlaybackSession(testing: controller, key: entry.id)
+            testModel.playback = session
+            MiniPlayerWindow.offscreenForTesting = true
+            let mini = MiniPlayerWindow.shared
+            mini.show(model: testModel)
+            try? await Task.sleep(for: .seconds(1))
+            let panel = mini.testPanel
+            let t1 = controller.currentTime
+            try? await Task.sleep(for: .seconds(3))
+            report += "; mini: inPanel=\(controller.webView.window === panel) isMini=\(session.isMini)"
+            report += " phase=\(controller.phase) advanced=\(controller.currentTime > t1 + 1)"
+            report += " floating=\(panel?.level == .floating) hidesOnDeactivate=\(panel?.hidesOnDeactivate ?? true)"
+            if let panel {
+                let size = mini.windowWillResize(panel, to: NSSize(width: 900, height: 300))
+                let content = panel.contentRect(forFrameRect: NSRect(origin: .zero, size: size))
+                report += " resize900→video \(Int(content.width))×\(Int(content.height - MiniPlayerWindow.barHeight))"
+                let small = mini.windowWillResize(panel, to: NSSize(width: 100, height: 100))
+                report += " min=\(Int(panel.contentRect(forFrameRect: NSRect(origin: .zero, size: small)).width))"
+            }
+            // Expand: the full player screen re-hosts the same web view.
+            mini.expand()
+            main.contentView = NSHostingView(rootView: PlayerWebViewRepresentable(controller: controller))
+            try? await Task.sleep(for: .seconds(1))
+            let t2 = controller.currentTime
+            try? await Task.sleep(for: .seconds(3))
+            report += "; expanded: inMain=\(controller.webView.window === main) isMini=\(session.isMini)"
+            report +=
+                " route=\(testModel.path.last == session.route) phase=\(controller.phase) advanced=\(controller.currentTime > t2 + 1)"
+            report += " noReload=\(controller.currentTime > 6)"
+            // Back to mini, then Close: stops and clears the playback.
+            mini.show(model: testModel)
+            mini.close()
+            report += "; closed: playback=\(testModel.playback == nil) panelVisible=\(panel?.isVisible ?? false)"
+            finish(report)
+        }
+
+        private static func finish(_ text: String) {
+            print("MINI-TEST \(text)")
+            exit(0)
         }
 
         static func pickAndTest(_ model: AppModel) {
@@ -26,7 +93,8 @@
                 }
             }
             if let id = SnapshotMode.argument("--video") { picks = ["manual": id] }
-            print("PLAYER-TEST picks: \(picks.count) channels, \(model.library.competitions.map(\.rounds.count)) rounds")
+            print(
+                "PLAYER-TEST picks: \(picks.count) channels, \(model.library.competitions.map(\.rounds.count)) rounds")
             Task {
                 for (channel, id) in picks.sorted(by: { $0.key < $1.key }) {
                     let result = await test(id)
@@ -86,7 +154,8 @@
                 try? await Task.sleep(for: .milliseconds(250))
                 if controller.phase == .finished { break }
             }
-            return summary + " end=\(controller.phase == .finished) t_end=\(Int(controller.currentTime)) events=\(events)"
+            return summary
+                + " end=\(controller.phase == .finished) t_end=\(Int(controller.currentTime)) events=\(events)"
         }
     }
 #endif

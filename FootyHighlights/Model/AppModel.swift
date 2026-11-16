@@ -20,6 +20,8 @@ final class AppModel {
 
     /// The main window's navigation stack.
     var path: [Route] = []
+    /// What's playing, on the player screen or in the mini player. Nil when nothing is.
+    var playback: PlaybackSession?
     /// Highlights waiting to play, in order. Persisted between launches.
     private(set) var queue: [MatchKey] = []
     private static let queueDefaultsKey = "queue"

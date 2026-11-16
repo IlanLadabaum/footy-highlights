@@ -73,7 +73,7 @@ While testing against live data you will see real scores and results. **Never pu
 
 - **Live-data check:** `swift run --package-path FootyKit footy-cli` (reads `.env`; prints counts only, never titles or scores).
 
-- **Debug tools (Debug builds only):** `"build/DerivedData/Build/Products/Debug/Footy Highlights.app/Contents/MacOS/Footy Highlights" --snapshot <dir> --seed FootyKit/Tests/FootyKitTests/Fixtures` renders the screens to PNGs from last season's data (no live spoilers, no screen-recording permission needed). `--player-test` plays one highlight per channel **muted** offscreen and prints player states only. Never screenshot a playing video: the broadcast graphics show the score.
+- **Debug tools (Debug builds only):** `"build/DerivedData/Build/Products/Debug/Footy Highlights.app/Contents/MacOS/Footy Highlights" --snapshot <dir> --seed FootyKit/Tests/FootyKitTests/Fixtures` renders the screens to PNGs from last season's data (no live spoilers, no screen-recording permission needed). `--player-test` plays one highlight per channel **muted** offscreen and prints player states only. `--mini-test` does the same for one highlight while moving it into the mini player and back. Never screenshot a playing video: the broadcast graphics show the score.
 
 - **Lint / format:** `swiftlint lint` and `xcrun swift-format lint -r FootyHighlights FootyKit/Sources FootyKit/Tests` (format in place with `xcrun swift-format format -i -r …`). Configs: `.swiftlint.yml`, `.swift-format`.
 

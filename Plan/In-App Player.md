@@ -71,6 +71,15 @@ Takeaways:
   - [OPEN] **Captions**: see the question to the developer (2026-10-21).
   - Original approach (agent's call): first find out why YouTube's own memory doesn't survive relaunch (likely WebKit treating the YouTube iframe's storage as third-party under the app's made-up page origin) and fix that, so YouTube remembers everything itself. Where that can't be made to work, the app remembers the settings that have documented API calls (volume, mute, speed) and re-applies them when each video loads. Captions have no documented API call; if YouTube's own memory can't be fixed for them, raise it with the developer again.
 
+## Mini player (picture in picture)
+
+- [DECIDED] [BUILT 2026-11-16] **Mini player** *(user, 2026-11-16)*: the video can move into a small window so the user can browse the app while it plays. Flexible size and position.
+  - macOS's built-in picture in picture is **not possible**: it needs script access to the `<video>` element inside YouTube's iframe, which is injection into the player (forbidden, see the table above). The mini player is the app's own window holding the same YouTube embed, unchanged.
+  - [DECIDED] A **separate floating window**: drag it anywhere, resize from any edge, 16:9 kept. Minimum video size ~356×200 (YouTube requires ≥ 200×200).
+  - [DECIDED] **Stays on top of other apps** via a pin toggle on its bar, **on by default**, remembered.
+  - [DECIDED] Bar below the video (nothing over it): **Expand** (back to the full player, still playing), the pin toggle, and **Close** (stops the video).
+  - The queue keeps advancing in the mini player.
+
 ## Tech stack
 
 - [DECIDED] **Swift + SwiftUI, one multiplatform app target (macOS first, iPadOS later)**, using WKWebView for the player. *Decision delegated to the agent by the user ("Language is your call, fully"), 2026-10-11.* Rationale:
