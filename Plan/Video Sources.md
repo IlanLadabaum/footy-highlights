@@ -31,6 +31,7 @@
 | **Champions League** | CBS Sports Golazo `UCET00YnetHT7tOpu12v8jxg` | `Napoli vs. Arsenal: Extended Highlights \| UCL League Phase MD 1 \| CBS Sports Golazo` | Every match | ~8–11 min, extended | No; **round is in the title** | [DECIDED] use |
 | Serie A | CBS Sports Golazo | `Inter vs. Parma: Extended Highlights \| Serie A \| …` | Every match | extended | No | [DECIDED] use |
 | Carabao Cup | CBS Sports Golazo | `… : Extended Highlights \| Carabao Cup \| …` | Every match | extended | No | [DECIDED] use |
+| **UEFA Nations League** *(user, 2026-11-15)* | FOX Sports `UCwNqHDsnBCKT-olwJwIFyfg` (not FOX Soccer, which posted only one) | `Spain vs Italy Highlights \| UEFA Nations League`; Sep–Oct 2026 used ⚽ instead of `\|` | Selected matches only (~6–8 per window; 19 this season so far) | ~8–20 min, one version | No (no digits in any title) | [DECIDED] [BUILT 2026-11-15] |
 | Ligue 1 | beIN SPORTS USA `UC0YatYmg5JRYzXJPxIdRd8g` | `PSG vs Le Mans \| EXTENDED HIGHLIGHTS Ligue 1 \| 10/10/2026 \| beIN SPORTS USA` | Every match | `HIGHLIGHTS` ~11 min; `EXTENDED HIGHLIGHTS` ~18–24 min for some matches → take the extended one when it exists | No | [DECIDED] use |
 | **Bundesliga** | **USA Sports** `UC9u0o8uDT5Z6IsrXp2Grs9Q`. US English rights moved from ESPN to USA Sports (Versant) for 2026-27 to 2030-31 | `Borussia Dortmund v. SV Werder Bremen \| BUNDESLIGA HIGHLIGHTS \| USA Sports` | Every match (9/9 in MD1–4) | ~17–18 min, long cut | No | [DECIDED] use |
 | **La Liga** | ESPN FC (incomplete; see below) | `Sevilla vs. Barcelona \| LALIGA Highlights \| ESPN FC` | ~60–75% of matches | 9–25 min | Sometimes teaser prefixes | [DECIDED] use |
@@ -128,4 +129,5 @@ Researched 2026-10-11.
 - Useful enums (docs, Lookup Tables):
   - Match `status`: SCHEDULED, TIMED, IN_PLAY, PAUSED, EXTRA_TIME, PENALTY_SHOOTOUT, FINISHED, SUSPENDED, POSTPONED, CANCELLED, AWARDED. **"No highlights available" rows apply only to FINISHED/AWARDED matches.** Postponed/cancelled matches show their status, which isn't a result spoiler.
   - `score.duration`: REGULAR, EXTRA_TIME, PENALTY_SHOOTOUT. Used when revealing scores and showing first-leg scores (e.g. "a.e.t." / "pens").
+- [DECIDED] [BUILT 2026-11-15] **UEFA Nations League** *(user, 2026-11-15)*: football-data's free tier doesn't cover it, so it uses the no-key behaviour like the Carabao Cup (rounds by date window, no table). FOX Sports' longer `… \| UEFA Nations League \| FOX Soccer` uploads (~40 min, likely replays) are excluded. CONCACAF Nations League is not included.
 - [DECIDED] Carabao Cup has no free fixture data: it **always uses the no-key behaviour** (date-based rounds, teams parsed from titles, no table, no "no highlights" rows). *(approved interpretation, 2026-10-11)*

@@ -117,3 +117,9 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D67. The checkpoint is kept in memory only**, so Restore queue is available until the app quits. It's only reachable from the "Queue finished" screen, which doesn't survive a relaunch anyway.
 - **D68. The checkpoint is the queue at the moment Start queue is pressed.** Matches added to the queue while it's playing aren't in it, so they won't appear in the restore list.
 - **D69. Picking a match in the restore list starts playing straight away**, in the same player (no extra Play step).
+
+### UEFA Nations League (2026-11-15)
+- **D70. Source is the FOX Sports channel**, which has posted 19 Nations League highlights this season. FOX Soccer (the more obvious channel) has posted only one. FOX Sports covers selected matches, not all of them, so many smaller nations' games won't appear.
+- **D71. No fixture data:** football-data's free tier doesn't include the Nations League, so it works like the Carabao Cup. Rounds are grouped by date ("Weekend of 13–15 Nov", "Midweek of …"), there's no table, and missing matches don't show "no highlights" rows. One international window can therefore split into two rounds (e.g. a Thursday game lands in "Midweek", the weekend games in "Weekend").
+- **D72. It's added last in the league list (priority 8) and off for existing installs** until you turn it on in Add/remove leagues, like any league you haven't picked.
+- **D73. UEFA only.** "Nations League" could also mean the CONCACAF Nations League (USMNT); that isn't included.

@@ -34,7 +34,7 @@ You need Xcode 16 or later. Clone the repo, open `FootyHighlights.xcodeproj` and
 
 ## Competitions
 
-**Premier League**, **UEFA Champions League**, La Liga, Bundesliga, Serie A, Ligue 1 and the Carabao Cup. Choose which ones you follow on first launch (and later under Settings → Leagues). Highlights come from US broadcasters' YouTube channels (NBC Sports, CBS Sports Golazo, beIN SPORTS USA, USA Sports, ESPN FC and, for La Liga gaps, ESPN Deportes in Spanish), so **videos are currently only playable in the US**. Support for other regions is planned.
+**Premier League**, **UEFA Champions League**, La Liga, Bundesliga, Serie A, Ligue 1, the Carabao Cup and the UEFA Nations League. Choose which ones you follow on first launch (and later under Settings → Leagues). Highlights come from US broadcasters' YouTube channels (NBC Sports, CBS Sports Golazo, beIN SPORTS USA, USA Sports, ESPN FC, FOX Sports and, for La Liga gaps, ESPN Deportes in Spanish), so **videos are currently only playable in the US**. Support for other regions is planned.
 
 ## Setting up your YouTube API key
 

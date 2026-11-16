@@ -45,6 +45,11 @@
       "name": "LALIGA EA SPORTS",
       "titlePattern": "^(?<home>.+?)\\s+\\d+\\s*-\\s*\\d+\\s+(?<away>.+?)\\s*\\|\\s*RESUMEN LALIGA\\b",
       "spoilerProneTitles": true
+    },
+    "foxsports": {
+      "channelId": "UCwNqHDsnBCKT-olwJwIFyfg",
+      "name": "FOX Sports",
+      "titlePattern": "^(?<home>.+?) vs\\.? (?<away>.+?) Highlights? *(?:\\||⚽\ufe0f?) *UEFA Nations League\\b"
     }
   },
   "competitions": [
@@ -124,6 +129,13 @@
       "sources": [
         { "channel": "cbs", "label": "^Carabao Cup\\s*(?<round>.*)$" }
       ]
+    },
+    {
+      "id": "UNL",
+      "name": "Nations League",
+      "priority": 8,
+      "isCup": true,
+      "sources": [{ "channel": "foxsports" }]
     }
   ],
   "teamDisplayNames": {

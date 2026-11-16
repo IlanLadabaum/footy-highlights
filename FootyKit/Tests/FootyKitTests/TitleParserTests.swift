@@ -25,6 +25,27 @@ struct TitleParserTests {
         }
     }
 
+    @Test func foxNationsLeague() {
+        // Synthetic titles in FOX Sports' two formats (pipe since Nov 2026, football emoji before).
+        for title in [
+            "Spain vs Italy Highlights | UEFA Nations League",
+            "Spain vs. Italy Highlights \u{26BD}\u{FE0F} UEFA Nations League",
+            "Spain vs Italy Highlights \u{26BD} UEFA Nations League",
+        ] {
+            let parsed = parser.parse(title: title, channelKey: "foxsports")
+            #expect(parsed?.competitionId == "UNL", "\(title)")
+            #expect(parsed?.home == "Spain")
+            #expect(parsed?.away == "Italy")
+        }
+        for title in [
+            "Spain vs. Italy | UEFA Nations League | FOX Soccer",
+            "Best goals of the window | UEFA Nations League",
+            "USA vs Mexico Highlights | International Friendly",
+        ] {
+            #expect(parser.parse(title: title, channelKey: "foxsports") == nil, "\(title)")
+        }
+    }
+
     @Test func cbsRoutesByLabel() {
         let ucl = parser.parse(title: "Napoli vs. Arsenal: Extended Highlights | UCL League Phase MD 1 | CBS Sports Golazo", channelKey: "cbs")
         #expect(ucl?.competitionId == "UCL")
