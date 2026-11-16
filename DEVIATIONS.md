@@ -123,3 +123,7 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D71. No fixture data:** football-data's free tier doesn't include the Nations League, so it works like the Carabao Cup. Rounds are grouped by date ("Weekend of 13–15 Nov", "Midweek of …"), there's no table, and missing matches don't show "no highlights" rows. One international window can therefore split into two rounds (e.g. a Thursday game lands in "Midweek", the weekend games in "Weekend").
 - **D72. It's added last in the league list (priority 8) and off for existing installs** until you turn it on in Add/remove leagues, like any league you haven't picked.
 - **D73. UEFA only.** "Nations League" could also mean the CONCACAF Nations League (USMNT); that isn't included.
+
+### "Showing a score marks it watched" setting (2026-11-16)
+- **D74. Off by default**, so nothing changes until you turn it on (Settings → Advanced).
+- **D75. Hiding a score again doesn't unmark watched.** Undo (⌘Z) after revealing restores both the score and the watched state.

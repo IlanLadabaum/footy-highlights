@@ -104,6 +104,15 @@ struct AdvancedSettings: View {
             Text("Some channels post a normal and an extended highlight. You can still switch on each match.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            Toggle(
+                "Showing a score also marks the match watched",
+                isOn: Binding(get: { model.revealMarksWatched }, set: { model.setRevealMarksWatched($0) }))
+            Text(
+                "Applies to each match's score checkbox and the table's \"Show All Scores\" button. "
+                    + "Hiding a score again doesn't change watched status."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
             Toggle("Hide video durations", isOn: $hideDurations)
             Text(
                 "Some matches have longer highlights than others, which can hint at the result. "

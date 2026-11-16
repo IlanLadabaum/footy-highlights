@@ -78,6 +78,25 @@ final class QueueTests: XCTestCase {
         XCTAssertEqual(model.checkpointEntries.count, 3)
     }
 
+    func testRevealMarksWatchedSetting() throws {
+        let model = try makeModel()
+        let entries = model.library.competition("PL")!.rounds.flatMap(\.matches)
+        // Off (default): showing a score leaves watched alone.
+        model.setRevealed(entries[0], true)
+        XCTAssertFalse(model.entry(entries[0].id)!.flags.watched)
+        // On: showing a score, one match or the whole round, marks it watched; hiding keeps it watched.
+        model.setRevealMarksWatched(true)
+        model.setRevealed(entries[1], true)
+        XCTAssertTrue(model.entry(entries[1].id)!.flags.watched)
+        model.setRevealed(entries[1], false)
+        XCTAssertTrue(model.entry(entries[1].id)!.flags.watched)
+        let round = model.library.round(entries[2].roundId)!
+        let previous = model.setAllRevealed(in: round, true)
+        XCTAssertTrue(model.entry(entries[2].id)!.flags.watched)
+        model.restore(previous)  // undo puts watched back too
+        XCTAssertFalse(model.entry(entries[2].id)!.flags.watched)
+    }
+
     func testRevealAllScoresInRoundAndHideAgain() throws {
         let model = try makeModel()
         let round = model.library.competition("PL")!.rounds[0]

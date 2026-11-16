@@ -34,6 +34,9 @@ final class AppModel {
     /// Competition ID → in-app sources in the viewer's order (Settings → Leagues). Missing = config order.
     private(set) var sourceOrder: [String: [String]] = [:]
     private static let sourceOrderKey = "sourceOrder"
+    /// Showing a score (a match's checkbox or "Show All Scores") also marks the match watched (Settings → Advanced).
+    private(set) var revealMarksWatched = false
+    private static let revealMarksWatchedKey = "revealMarksWatched"
 
     private(set) var library = Library.empty
     private(set) var keys = APIKeys(youTube: nil, footballData: nil)
@@ -75,6 +78,7 @@ final class AppModel {
         lastRefresh = refresher.lastRefresh
         enabledLeagues = defaults.stringArray(forKey: Self.leaguesDefaultsKey).map(Set.init)
         defaultCut = defaults.string(forKey: Self.defaultCutKey).flatMap(HighlightCut.init(rawValue:)) ?? .extended
+        revealMarksWatched = defaults.bool(forKey: Self.revealMarksWatchedKey)
         sourceOrder = defaults.dictionary(forKey: Self.sourceOrderKey) as? [String: [String]] ?? [:]
         queue = (defaults.stringArray(forKey: Self.queueDefaultsKey) ?? []).compactMap(MatchKey.init(string:))
         rebuild()
@@ -148,7 +152,7 @@ final class AppModel {
 
     @discardableResult
     func setRevealed(_ entry: MatchEntry, _ revealed: Bool) -> [MatchKey: MatchFlags] {
-        let previous = store.setFlags(entry.flagKeys, revealed: revealed)
+        let previous = store.setFlags(entry.flagKeys, watched: watchedOnReveal(revealed), revealed: revealed)
         rebuild()
         return previous
     }
@@ -163,9 +167,19 @@ final class AppModel {
     func setAllRevealed(in round: Round, _ revealed: Bool) -> [MatchKey: MatchFlags] {
         let keys = revealableMatches(in: round).flatMap(\.flagKeys)
         guard !keys.isEmpty else { return [:] }
-        let previous = store.setFlags(keys, revealed: revealed)
+        let previous = store.setFlags(keys, watched: watchedOnReveal(revealed), revealed: revealed)
         rebuild()
         return previous
+    }
+
+    /// Showing a score marks the match watched when the setting is on; hiding it again leaves watched alone.
+    private func watchedOnReveal(_ revealed: Bool) -> Bool? {
+        revealed && revealMarksWatched ? true : nil
+    }
+
+    func setRevealMarksWatched(_ on: Bool) {
+        revealMarksWatched = on
+        defaults.set(on, forKey: Self.revealMarksWatchedKey)
     }
 
     func revealFirstLeg(_ info: FirstLegInfo) {
