@@ -19,11 +19,14 @@
             }
         }
 
+        // swiftlint:disable function_body_length
         /// `--mini-test`: plays one highlight muted offscreen, moves it into the mini player and back, and checks
-        /// it keeps playing without reloading. Doesn't touch watched flags or the saved mini player frame.
+        /// it keeps playing without reloading, and that the T and I keys work. Doesn't touch watched flags or the
+        /// saved mini player frame.
         static func testMiniPlayer(_ model: AppModel) async {
             guard
-                let entry = model.library.competitions.flatMap(\.rounds).flatMap(\.matches).first(where: \.isPlayable),
+                let entry = model.library.competitions.flatMap(\.rounds).filter({ $0.layout == .withTable })
+                    .flatMap(\.matches).first(where: \.isPlayable),
                 let video = entry.video
             else { return finish("no playable video") }
             let store = try! Store(inMemory: true)  // swiftlint:disable:this force_try
@@ -73,12 +76,42 @@
             report +=
                 " route=\(testModel.path.last == session.route) phase=\(controller.phase) advanced=\(controller.currentTime > t2 + 1)"
             report += " noReload=\(controller.currentTime > 6)"
+            // Keys, on the real player screen (the real model only holds this playback; nothing is marked).
+            testModel.playback = nil
+            model.playback = session
+            main.contentView = NSHostingView(rootView: PlayerScreen(mode: session.mode).environment(model))
+            try? await Task.sleep(for: .seconds(1))
+            func press(_ key: String, in window: NSWindow?) async {
+                guard let window,
+                    let event = NSEvent.keyEvent(
+                        with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+                        windowNumber: window.windowNumber, context: nil, characters: key,
+                        charactersIgnoringModifiers: key, isARepeat: false, keyCode: key == "t" ? 17 : 34)
+                else { return }
+                NSApp.sendEvent(event)
+                try? await Task.sleep(for: .seconds(1))
+            }
+            func viewCount(_ view: NSView?) -> Int { (view?.subviews ?? []).reduce(1) { $0 + viewCount($1) } }
+            let before = viewCount(main.contentView)
+            await press("t", in: main)
+            let withTable = viewCount(main.contentView)
+            await press("t", in: main)
+            report += "; keys: T opens=\(withTable > before) T closes=\(viewCount(main.contentView) < withTable)"
+            await press("i", in: main)
+            report += " I→mini=\(session.isMini && controller.webView.window === panel) \(controller.phase)"
+            try? await Task.sleep(for: .seconds(2))
+            report += "→\(controller.phase)"
+            await press("i", in: panel)
+            try? await Task.sleep(for: .seconds(2))
+            report += " I→full=\(!session.isMini && controller.webView.window === main) phase=\(controller.phase)"
             // Back to mini, then Close: stops and clears the playback.
-            mini.show(model: testModel)
+            mini.show(model: model)
             mini.close()
-            report += "; closed: playback=\(testModel.playback == nil) panelVisible=\(panel?.isVisible ?? false)"
+            report += "; closed: playback=\(model.playback == nil) panelVisible=\(panel?.isVisible ?? false)"
             finish(report)
         }
+
+        // swiftlint:enable function_body_length
 
         private static func finish(_ text: String) {
             print("MINI-TEST \(text)")

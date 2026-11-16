@@ -7,6 +7,8 @@ struct LeagueTableView: View {
     let round: Round
     let competition: CompetitionSummary
     let highlighted: Set<Int>
+    /// In the player: the match being watched. Its own score toggle replaces "update table with all scores".
+    var currentMatch: MatchKey?
     @Environment(AppModel.self) private var model
     @State private var confirmRevealAll = false
     /// Team whose previous results box is open.
@@ -20,22 +22,25 @@ struct LeagueTableView: View {
                         header(table)
                         columnHeader
                         ForEach(table.rows) { row in
-                            TableRowView(row: row, name: model.displayName(row.team), isHighlighted: highlighted.contains(row.id))
-                                .id(row.id)
-                                .contentShape(Rectangle())
-                                .onTapGesture { selectedTeam = row.id }
-                                .help("Show \(model.displayName(row.team))'s previous results")
-                                .popover(
-                                    isPresented: Binding(
-                                        get: { selectedTeam == row.id }, set: { if !$0 { selectedTeam = nil } }),
-                                    arrowEdge: .leading
-                                ) {
-                                    TeamResultsBox(team: row.team, round: round) { selectedTeam = nil }
-                                        .environment(model)
-                                }
+                            TableRowView(
+                                row: row, name: model.displayName(row.team), isHighlighted: highlighted.contains(row.id)
+                            )
+                            .id(row.id)
+                            .contentShape(Rectangle())
+                            .onTapGesture { selectedTeam = row.id }
+                            .help("Show \(model.displayName(row.team))'s previous results")
+                            .popover(
+                                isPresented: Binding(
+                                    get: { selectedTeam == row.id }, set: { if !$0 { selectedTeam = nil } }),
+                                arrowEdge: .leading
+                            ) {
+                                TeamResultsBox(team: row.team, round: round) { selectedTeam = nil }
+                                    .environment(model)
+                            }
                         }
                         ForEach(table.deductionNotes, id: \.self) { note in
-                            Text(note).font(.caption2).foregroundStyle(.secondary).padding(.horizontal, 12).padding(.top, 6)
+                            Text(note).font(.caption2).foregroundStyle(.secondary).padding(.horizontal, 12).padding(
+                                .top, 6)
                         }
                     }
                     .padding(.bottom, 20)
@@ -47,22 +52,39 @@ struct LeagueTableView: View {
                 }
             }
         } else {
-            Text("No table for this round.").foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity)
+            Text("No table for this round.").foregroundStyle(.secondary).frame(
+                maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
     private func header(_ table: AppModel.RoundTable) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            revealAllButton
-                .padding(.bottom, 8)
+            Group {
+                if let currentMatch { currentMatchToggle(currentMatch) } else { revealAllButton }
+            }
+            .padding(.bottom, 8)
             Text("Table before \(round.name)").font(.headline)
-            Text(table.revealedCount == 0
-                 ? "Tick “Show score & update table” on a match to add its result."
-                 : "Including \(table.revealedCount) revealed result\(table.revealedCount == 1 ? "" : "s") from this \(noun).")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(
+                table.revealedCount == 0
+                    ? "Tick “Show score & update table” on a match to add its result."
+                    : "Including \(table.revealedCount) revealed result\(table.revealedCount == 1 ? "" : "s") from this \(noun)."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         .padding(12)
+    }
+
+    /// The player's table: shows or hides only the current match's score (same as its row's checkbox).
+    @ViewBuilder private func currentMatchToggle(_ key: MatchKey) -> some View {
+        if let entry = model.entry(key), entry.fixture?.score != nil, entry.fixture?.status.isFinal == true {
+            Toggle(
+                isOn: Binding(get: { entry.flags.revealed }, set: { model.setRevealed(entry, $0) })
+            ) {
+                Text("Show this match's score & update table").font(.caption)
+            }
+            .modifier(CheckboxStyle())
+        }
     }
 
     /// Reveals every finished match of the round at once (asks first, since it shows all their scores).
@@ -96,7 +118,8 @@ struct LeagueTableView: View {
 
     /// "matchweek" (Premier League), "matchday" (other leagues), "round" otherwise.
     private var noun: String {
-        competition.config.effectiveRoundStyle == .league ? (competition.config.roundNoun ?? "round").lowercased() : "round"
+        competition.config.effectiveRoundStyle == .league
+            ? (competition.config.roundNoun ?? "round").lowercased() : "round"
     }
 
     private var columnHeader: some View {

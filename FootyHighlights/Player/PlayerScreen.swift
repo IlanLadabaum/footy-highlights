@@ -14,6 +14,9 @@ struct PlayerScreen: View {
     @State private var showOriginalTitle = false
     @State private var showTable = false
     @State private var showRestore = false
+    #if os(macOS)
+        @State private var keyMonitor: Any?
+    #endif
 
     /// This screen's playback (not while it's in the mini player).
     private var session: PlaybackSession? {
@@ -43,7 +46,8 @@ struct PlayerScreen: View {
                     .padding([.top, .horizontal], 10)
                     LeagueTableView(
                         round: tableRound, competition: competition,
-                        highlighted: entry?.fixture.map { [$0.home.id, $0.away.id] } ?? [])
+                        highlighted: entry?.fixture.map { [$0.home.id, $0.away.id] } ?? [],
+                        currentMatch: entry?.id)
                 }
                 .frame(width: 400)
                 .transition(.move(edge: .trailing))
@@ -60,8 +64,14 @@ struct PlayerScreen: View {
                 }
             }
         }
-        .onAppear(perform: begin)
-        .onDisappear(perform: end)
+        .onAppear {
+            begin()
+            installKeys()
+        }
+        .onDisappear {
+            removeKeys()
+            end()
+        }
         .confirmationDialog("Show the original YouTube title?", isPresented: $confirmOriginalTitle) {
             Button("Show Original Title") { showOriginalTitle = true }
             Button("Cancel", role: .cancel) {}
@@ -157,7 +167,7 @@ struct PlayerScreen: View {
                     Label(showTable ? "Hide table" : "Show table", systemImage: "tablecells")
                 }
                 .keyboardShortcut("t", modifiers: .command)
-                .help("The table as it stood before this round (⌘T)")
+                .help("The table as it stood before this round (T or ⌘T)")
             }
             #if os(macOS)
                 if let phase = session?.controller.phase, phase != .finished {
@@ -166,7 +176,7 @@ struct PlayerScreen: View {
                     } label: {
                         Label("Mini player", systemImage: "pip.enter")
                     }
-                    .help("Keep watching in a small window while you browse")
+                    .help("Keep watching in a small window while you browse (I)")
                 }
             #endif
             if mode == .queue {
@@ -204,6 +214,36 @@ struct PlayerScreen: View {
             #endif
         }
         model.playback = PlaybackSession(mode: mode, model: model)
+    }
+
+    /// T toggles the table (when the round has one); I moves the video to the mini player.
+    private func installKeys() {
+        #if os(macOS)
+            guard keyMonitor == nil else { return }
+            keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                guard let session, event.window?.isKind(of: NSPanel.self) != true else { return event }
+                switch PlainKey.letter(event) {
+                case "t":
+                    let round = model.entry(session.currentKey).flatMap { model.library.round($0.roundId) }
+                    guard round?.layout == .withTable else { return event }
+                    showTable.toggle()
+                    return nil
+                case "i":
+                    guard session.controller.phase != .finished else { return event }
+                    MiniPlayerWindow.shared.show(model: model)
+                    return nil
+                default:
+                    return event
+                }
+            }
+        #endif
+    }
+
+    private func removeKeys() {
+        #if os(macOS)
+            if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+            keyMonitor = nil
+        #endif
     }
 
     /// Leaving the screen stops the video, unless it moved to the mini player.

@@ -102,6 +102,20 @@
                             .frame(width: 420))
                     ))
             }
+            if let pl = library.competition("PL"), let round = pl.rounds.first(where: { $0.layout == .withTable }),
+                let match = round.matches.last(where: { $0.fixture?.score != nil }), let fixture = match.fixture
+            {
+                screens.append(
+                    (
+                        "5-table-in-player",
+                        AnyView(
+                            LeagueTableView(
+                                round: round, competition: pl, highlighted: [fixture.home.id, fixture.away.id],
+                                currentMatch: match.id
+                            )
+                            .frame(width: 400))
+                    ))
+            }
             for competition in library.competitions where !competition.rounds.isEmpty {
                 screens.append(
                     (

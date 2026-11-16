@@ -22,6 +22,8 @@
         #endif
 
         private var panel: NSPanel?
+        /// I (anywhere in the app, outside text fields) expands the mini player while it's open.
+        private var keyMonitor: Any?
         private weak var model: AppModel?
 
         /// Keep the mini player above other apps (the pin on its bar). On by default.
@@ -45,17 +47,37 @@
                 rootView: MiniPlayerView(session: session, window: self).environment(model))
             applyPin()
             panel.orderFront(nil)
+            if keyMonitor == nil {
+                keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                    guard PlainKey.letter(event) == "i", let self, self.panel?.isVisible == true else { return event }
+                    self.expand()
+                    return nil
+                }
+            }
             if model.path.last == session.route { model.path.removeLast() }
+            keepPlaying(session)
         }
 
         /// Back to the full player screen, still playing.
         func expand() {
             guard let model, let session = model.playback else { return close() }
             session.isMini = false
-            hide()
             if model.path.last != session.route { model.path.append(session.route) }
             NSApp.activate(ignoringOtherApps: true)
             NSApp.windows.first { $0 !== panel && $0.canBecomeMain }?.makeKeyAndOrderFront(nil)
+            // Hide only once the player screen has taken the video over: a video left without a window pauses.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                if !session.isMini { self?.hide() }
+            }
+            keepPlaying(session)
+        }
+
+        /// Moving the player between windows can pause it; if it was playing, carry on.
+        private func keepPlaying(_ session: PlaybackSession) {
+            guard session.controller.phase == .playing else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                if session.controller.phase == .paused { session.controller.togglePlay() }
+            }
         }
 
         /// Stops the video and closes the mini player.
@@ -69,6 +91,8 @@
 
         /// Hides the window without stopping anything (the player moved elsewhere).
         func hide() {
+            if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+            keyMonitor = nil
             panel?.contentView = nil
             panel?.orderOut(nil)
         }
@@ -151,7 +175,7 @@
                     } label: {
                         Label("Expand", systemImage: "arrow.up.left.and.arrow.down.right")
                     }
-                    .help("Back to the full player")
+                    .help("Back to the full player (I)")
                     Spacer()
                     Toggle(isOn: $pinned) {
                         Label("Keep on top", systemImage: pinned ? "pin.fill" : "pin")

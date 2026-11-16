@@ -136,3 +136,10 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D80. When the video (or the queue) finishes in the mini window, it shows "Finished" / "Queue finished"**; press Expand for Watch again or Restore queue. If a video fails, it says so; press Expand for the usual options.
 - **D81. "Keep on top" also keeps the mini player visible across desktops (Spaces) and over full-screen apps.**
 - **D82. New developer check `--mini-test`** (Debug builds): plays one highlight muted offscreen, moves it into the mini player and back, and prints pass/fail states only.
+
+### Player table: current match's score only (2026-11-16)
+- **D83. It's a checkbox, "Show this match's score & update table"**, the same control as on the match's row, so ticking either one ticks both. It only appears once the match is finished and has a score, and the "marks watched" setting applies to it too. The table on the round screen still has the reveal-all button.
+
+### Player keyboard shortcuts (2026-11-16)
+- **D84. T and I are ignored while typing in a text field and when Command, Control or Option is held.** T only works when the match's round has a table. I in the mini player works anywhere in the app (it expands the video); on the full player it's ignored once the video has finished.
+- **D85. Moving the video between the mini and full player resumes it if the move paused it.** Testing showed the video paused when the mini window let go of it before the full player picked it up. The mini window now stays until the hand-over is done, and resumes the video if it had been playing.

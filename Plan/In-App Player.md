@@ -79,6 +79,7 @@ Takeaways:
   - [DECIDED] **Stays on top of other apps** via a pin toggle on its bar, **on by default**, remembered.
   - [DECIDED] Bar below the video (nothing over it): **Expand** (back to the full player, still playing), the pin toggle, and **Close** (stops the video).
   - The queue keeps advancing in the mini player.
+- [DECIDED] [BUILT 2026-11-16] **Keyboard shortcuts in the player** *(user, 2026-11-16)*: **T** toggles the table (⌘T still works); **I** switches between the mini player and the full player. **M** was rejected because YouTube's player uses it for mute; I matches YouTube.com's own mini player key. Neither clashes with YouTube's embedded-player keys (k, j, l, f, m, c, 0–9, <, >, arrows, space).
 
 ## Tech stack
 
