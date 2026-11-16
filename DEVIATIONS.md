@@ -112,3 +112,8 @@ Run: overnight build of M0–M4, started 2026-10-11.
 - **D64. "Check for Updates…" sits in Settings → Advanced, in an "Updates" section** with the app version and when it last checked. Sparkle's automatic-install checkbox is hidden, because it always asks first.
 - **D65. The DMG is a plain compressed disk image** containing the app and an Applications shortcut to drag it onto. No custom background yet (M5 polish).
 - **D66. `release.sh` uploads nothing unless you pass `--publish`.** Release notes are optional: put them in `build/dist/FootyHighlights-<version>.md` and they're attached to the release and shown in the update dialog.
+
+### Restore queue (2026-11-04)
+- **D67. The checkpoint is kept in memory only**, so Restore queue is available until the app quits. It's only reachable from the "Queue finished" screen, which doesn't survive a relaunch anyway.
+- **D68. The checkpoint is the queue at the moment Start queue is pressed.** Matches added to the queue while it's playing aren't in it, so they won't appear in the restore list.
+- **D69. Picking a match in the restore list starts playing straight away**, in the same player (no extra Play step).

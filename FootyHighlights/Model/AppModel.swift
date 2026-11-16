@@ -23,6 +23,8 @@ final class AppModel {
     /// Highlights waiting to play, in order. Persisted between launches.
     private(set) var queue: [MatchKey] = []
     private static let queueDefaultsKey = "queue"
+    /// The queue as it was when it was last started. "Restore queue…" on the finished screen offers it again.
+    private(set) var queueCheckpoint: [MatchKey] = []
     /// Competition IDs the user follows; nil until they've chosen (first launch asks).
     private(set) var enabledLeagues: Set<String>?
     private static let leaguesDefaultsKey = "enabledLeagues"
@@ -294,7 +296,24 @@ final class AppModel {
     func startQueue() {
         guard !queuedEntries.isEmpty else { return }
         if path.last == .queue { return }
+        queueCheckpoint = queuedEntries.map(\.id)
         path.append(.queue)
+    }
+
+    /// The checkpoint's matches that still exist and can play, in the order they were queued.
+    var checkpointEntries: [MatchEntry] {
+        queueCheckpoint.compactMap { entry($0) }.filter(\.isPlayable)
+    }
+
+    /// "Restore queue": puts the checkpoint back from `key` onward, ahead of anything queued since,
+    /// and marks those matches unwatched (they played while nobody was watching).
+    func restoreQueue(from key: MatchKey) {
+        let entries = checkpointEntries
+        guard let start = entries.firstIndex(where: { $0.id == key }) else { return }
+        let restored = entries[start...].map(\.id)
+        queue = restored + queue.filter { !restored.contains($0) }
+        saveQueue()
+        setWatched(entries[start...].filter(\.flags.watched), false)
     }
 
     private func saveQueue() {

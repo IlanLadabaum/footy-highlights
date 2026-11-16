@@ -58,6 +58,26 @@ final class QueueTests: XCTestCase {
         XCTAssertNil(model.popQueue())
     }
 
+    func testRestoreQueueFromCheckpoint() throws {
+        let model = try makeModel()
+        let entries = model.library.competition("PL")!.rounds.flatMap(\.matches).filter(\.isPlayable)
+        XCTAssertEqual(entries.count, 3)
+        for entry in entries { model.enqueue(entry) }
+        model.startQueue()
+        XCTAssertEqual(model.queueCheckpoint, entries.map(\.id))
+        while model.popQueue() != nil {}
+        XCTAssertTrue(model.queuedEntries.isEmpty)
+
+        // Dozed off after the first match: restore from the second.
+        model.restoreQueue(from: entries[1].id)
+        XCTAssertEqual(model.queue, [entries[1].id, entries[2].id])
+        XCTAssertTrue(model.entry(entries[0].id)!.flags.watched)
+        XCTAssertFalse(model.entry(entries[1].id)!.flags.watched)
+        XCTAssertFalse(model.entry(entries[2].id)!.flags.watched)
+        // The checkpoint stays, so it can be restored again.
+        XCTAssertEqual(model.checkpointEntries.count, 3)
+    }
+
     func testRevealAllScoresInRoundAndHideAgain() throws {
         let model = try makeModel()
         let round = model.library.competition("PL")!.rounds[0]

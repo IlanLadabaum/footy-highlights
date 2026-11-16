@@ -20,10 +20,13 @@ struct PlayerScreen: View {
     @State private var confirmOriginalTitle = false
     @State private var showOriginalTitle = false
     @State private var showTable = false
+    @State private var showRestore = false
 
     var body: some View {
         let entry = currentKey.flatMap { model.entry($0) }
-        let tableRound = entry.flatMap { model.library.round($0.roundId) }.flatMap { $0.layout == .withTable ? $0 : nil }
+        let tableRound = entry.flatMap { model.library.round($0.roundId) }.flatMap {
+            $0.layout == .withTable ? $0 : nil
+        }
         HStack(spacing: 0) {
             playerColumn(entry, tableRound: tableRound)
             if showTable, let tableRound, let competition = model.library.competition(tableRound.id.competitionId) {
@@ -66,6 +69,16 @@ struct PlayerScreen: View {
         } message: {
             Text("Original titles can contain spoilers.")
         }
+        .sheet(isPresented: $showRestore) {
+            RestoreQueueSheet(
+                entries: model.checkpointEntries,
+                pick: { key in
+                    showRestore = false
+                    model.restoreQueue(from: key)
+                    advance()
+                },
+                cancel: { showRestore = false })
+        }
         .alert("Original title", isPresented: $showOriginalTitle) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -81,7 +94,9 @@ struct PlayerScreen: View {
                 if let controller {
                     switch controller.phase {
                     case .finished:
-                        FinishedPanel(isQueue: mode == .queue, replay: { controller.start() }, back: { dismiss() })
+                        FinishedPanel(
+                            isQueue: mode == .queue, replay: { controller.start() }, back: { dismiss() },
+                            restore: mode == .queue && !model.checkpointEntries.isEmpty ? { showRestore = true } : nil)
                     case .failed(let code):
                         ErrorPanel(
                             code: code, video: entry?.video, open: { openURL($0) },
@@ -200,6 +215,8 @@ struct FinishedPanel: View {
     var isQueue = false
     let replay: () -> Void
     let back: () -> Void
+    /// Queue only: reopens the queue as it was when it was started (for when you dozed off).
+    var restore: (() -> Void)?
 
     var body: some View {
         VStack(spacing: 16) {
@@ -207,6 +224,7 @@ struct FinishedPanel: View {
             Text(isQueue ? "Queue finished" : "Finished").font(.title2)
             HStack {
                 if !isQueue { Button("Watch again", action: replay) }
+                if let restore { Button("Restore queue…", action: restore) }
                 Button("Back", action: back).keyboardShortcut(.defaultAction)
             }
         }

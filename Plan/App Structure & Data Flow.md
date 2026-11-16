@@ -72,6 +72,8 @@
   - [DECIDED] The queue can be opened, **reordered by dragging**, and emptied with a **Clear queue** button.
   - [DECIDED] **Start queue button on screen** *(user, 2026-10-12)*: whenever the queue has videos, a "Start queue" button floats in the bottom-right of the browsing screens (in addition to the one in the queue popover).
   - [DECIDED] **"Queue all unwatched"** on each round (matchweek): queues that round's unwatched highlights in chronological order (the order rows are listed in). *(user, 2026-10-12)*
+  - [DECIDED] [BUILT 2026-11-04] **Restore queue** *(user, 2026-11-04; for dozing off mid-queue)*: the "Queue finished" screen has a **Restore queue…** button. It shows the queue as it was when **Start queue** was pressed (the checkpoint); clicking a match puts it and everything after it back in the queue, marks them unwatched, and plays from there. Restored matches go ahead of anything queued since. The checkpoint stays, so it can be restored again.
+  - [OPEN] **Recently watched list** (last ~25 watched, requeue a subset): proposed alongside Restore queue as a general version (e.g. dozing during a single video, or noticing the next day). Not yet confirmed; size and placement undecided.
 
 ## Table in the player
 

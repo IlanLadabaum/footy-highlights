@@ -37,7 +37,11 @@
                 ("9-settings-leagues", AnyView(LeagueSettings().frame(width: 560, height: 900))),
                 ("9-setup", AnyView(SetupView())),
             ]
-            screens.append(("4-player-finished", AnyView(ZStack { Color.black; FinishedPanel(isQueue: true, replay: {}, back: {}) })))
+            screens.append((
+                "4-player-finished",
+                AnyView(ZStack { Color.black; FinishedPanel(isQueue: true, replay: {}, back: {}, restore: {}) })))
+            let restoreEntries = Array(library.competition("PL")?.rounds.first?.matches.filter(\.isPlayable).prefix(6) ?? [])
+            screens.append(("4-player-restore-queue", AnyView(RestoreQueueSheet(entries: restoreEntries, pick: { _ in }, cancel: {}))))
             screens.append(("4-player-error", AnyView(ZStack {
                 Color.black
                 ErrorPanel(code: 150, video: nil, open: { _ in }, skip: {})
