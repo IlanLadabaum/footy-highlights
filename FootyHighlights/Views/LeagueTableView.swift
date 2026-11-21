@@ -23,7 +23,9 @@ struct LeagueTableView: View {
                         columnHeader
                         ForEach(table.rows) { row in
                             TableRowView(
-                                row: row, name: model.displayName(row.team), isHighlighted: highlighted.contains(row.id)
+                                row: row, name: model.displayName(row.team),
+                                isHighlighted: highlighted.contains(row.id),
+                                zone: competition.config.zone(forPosition: row.position)
                             )
                             .id(row.id)
                             .contentShape(Rectangle())
@@ -38,6 +40,7 @@ struct LeagueTableView: View {
                                     .environment(model)
                             }
                         }
+                        ZoneKey(config: competition.config, rowCount: table.rows.count)
                         ForEach(table.deductionNotes, id: \.self) { note in
                             Text(note).font(.caption2).foregroundStyle(.secondary).padding(.horizontal, 12).padding(
                                 .top, 6)
@@ -140,6 +143,7 @@ struct TableRowView: View {
     let row: StandingsEntry
     let name: String
     let isHighlighted: Bool
+    var zone: TableZoneKind?
 
     var body: some View {
         HStack(spacing: 0) {
@@ -159,7 +163,51 @@ struct TableRowView: View {
         .font(.callout.monospacedDigit())
         .padding(.horizontal, 12)
         .padding(.vertical, 5)
-        .background(isHighlighted ? Color.accentColor.opacity(0.22) : Color.clear)
+        // The highlight (blue) wins over the zone tint; the zone's edge bar stays.
+        .background(isHighlighted ? Color.accentColor.opacity(0.22) : zone?.color.opacity(0.13) ?? Color.clear)
+        .overlay(alignment: .leading) {
+            if let zone { Rectangle().fill(zone.color).frame(width: 3) }
+        }
         .animation(.easeOut(duration: 0.15), value: isHighlighted)
+    }
+}
+
+/// Compact key under the table for the zones the table actually shows.
+struct ZoneKey: View {
+    let config: CompetitionConfig
+    let rowCount: Int
+
+    var body: some View {
+        let kinds = (config.tableZones ?? []).filter { $0.from <= rowCount }.map(\.kind)
+        if !kinds.isEmpty {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 150), alignment: .leading)], alignment: .leading, spacing: 3
+            ) {
+                ForEach(kinds, id: \.self) { kind in
+                    HStack(spacing: 5) {
+                        RoundedRectangle(cornerRadius: 2).fill(kind.color).frame(width: 9, height: 9)
+                        Text(kind.label)
+                    }
+                }
+            }
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+        }
+    }
+}
+
+extension TableZoneKind {
+    /// Greens for good outcomes (darkest = best), reds for bad ones; none of them close to the highlight blue.
+    var color: Color {
+        switch self {
+        case .championsLeague, .knockouts, .promotion: Color(red: 0.10, green: 0.55, blue: 0.25)
+        case .championsLeagueQualifying: Color(red: 0.22, green: 0.66, blue: 0.30)
+        case .europaLeague, .knockoutPlayoff, .promotionPlayoff: Color(red: 0.42, green: 0.74, blue: 0.24)
+        case .conferenceLeague: Color(red: 0.66, green: 0.80, blue: 0.26)
+        case .relegationPlayoff: Color(red: 0.93, green: 0.48, blue: 0.24)
+        case .relegation, .eliminated: Color(red: 0.84, green: 0.19, blue: 0.19)
+        }
     }
 }

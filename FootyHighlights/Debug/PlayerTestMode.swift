@@ -8,10 +8,61 @@
     /// Prints channel, video ID and player states only (no titles, nothing visual).
     @MainActor
     enum PlayerTestMode {
-        static var enabled: Bool { miniTest || CommandLine.arguments.contains("--player-test") }
+        static var enabled: Bool { fullscreenTest || miniTest || CommandLine.arguments.contains("--player-test") }
         static var miniTest: Bool { CommandLine.arguments.contains("--mini-test") }
+        static var fullscreenTest: Bool { CommandLine.arguments.contains("--fullscreen-test") }
+
+        /// `--fullscreen-test`: no YouTube video (nothing to spoil): a blank black page in the player's web view,
+        /// hosted the way the player screen hosts it, goes full screen and back. Prints the web view's size and
+        /// window at each step, to catch a full-screen video that ends up with no size (black picture).
+        static func testFullscreen() async {
+            // A non-football video by default (Big Buck Bunny), so nothing can be spoiled.
+            let videoId = SnapshotMode.argument("--video") ?? "aqz-KE-bpKQ"
+            let controller = PlayerController(videoId: videoId, muted: true)
+            let key = MatchKey.fixture(1)
+            let session = PlaybackSession(testing: controller, key: key)
+            let model = AppModel(store: try! Store(inMemory: true), defaults: UserDefaults(suiteName: "fs-test")!)  // swiftlint:disable:this force_try
+            model.playback = session
+            let window = NSWindow(
+                contentRect: CGRect(x: 200, y: 200, width: 900, height: 600), styleMask: [.titled, .resizable],
+                backing: .buffered, defer: false)
+            window.collectionBehavior = [.fullScreenPrimary]
+            window.contentView = NSHostingView(rootView: PlayerScreen(mode: session.mode).environment(model))
+            window.orderFrontRegardless()
+            controller.start()
+            for _ in 0..<80 where !(controller.phase == .playing && controller.currentTime > 1) {
+                try? await Task.sleep(for: .milliseconds(250))
+            }
+            func state(_ label: String) -> String {
+                let view = controller.webView
+                return "\(label): \(Int(view.frame.width))×\(Int(view.frame.height)) "
+                    + "inPlayerWindow=\(view.window === window) visible=\(view.window?.isVisible == true) "
+                    + "phase=\(controller.phase) makes=\(PlayerWebViewRepresentable.makeCount)"
+            }
+            var report = state("playing")
+            _ = try? await controller.webView.evaluateJavaScript(
+                "document.querySelector('iframe').requestFullscreen(); 1")
+            try? await Task.sleep(for: .seconds(3))
+            report += "; " + state("fullscreen")
+            controller.togglePlay()
+            try? await Task.sleep(for: .seconds(2))
+            report += "; " + state("fs-paused")
+            controller.togglePlay()
+            try? await Task.sleep(for: .seconds(3))
+            report += "; " + state("fs-resumed")
+            _ = try? await controller.webView.evaluateJavaScript("document.exitFullscreen(); 1")
+            try? await Task.sleep(for: .seconds(3))
+            report += "; " + state("after")
+            controller.stop()
+            print("FULLSCREEN-TEST \(report)")
+            exit(0)
+        }
 
         static func run() {
+            if fullscreenTest {
+                Task { await testFullscreen() }
+                return
+            }
             let model = AppModel()
             Task {
                 await model.refresh()

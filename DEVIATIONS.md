@@ -143,3 +143,11 @@ Run: overnight build of M0–M4, started 2026-10-11.
 ### Player keyboard shortcuts (2026-11-16)
 - **D84. T and I are ignored while typing in a text field and when Command, Control or Option is held.** T only works when the match's round has a table. I in the mini player works anywhere in the app (it expands the video); on the full player it's ignored once the video has finished.
 - **D85. Moving the video between the mini and full player resumes it if the move paused it.** Testing showed the video paused when the mini window let go of it before the full player picked it up. The mini window now stays until the hand-over is done, and resumes the video if it had been playing.
+
+### Full-screen black picture (2026-11-21)
+- **D86. Probable cause, fixed: since 0.1.2 the video was sized with layout constraints** (added so it could move into the mini player). WebKit's full screen only resizes views that use automatic resizing. It's back to automatic resizing, and the mini player still passes its checks. I couldn't reproduce the black picture in an automated check, so please confirm it's gone.
+
+### Table zone colours (2026-11-21)
+- **D87. Zones use the standard allocation and don't adjust for cup winners or extra UEFA places.** Premier League, La Liga and Serie A: 1–4 Champions League, 5 Europa League, 6 Conference League, 18–20 relegation. Bundesliga: the same, plus 16th relegation play-off and 17–18 relegation. Ligue 1: 1–3 Champions League, 4th Champions League qualifying, 5 Europa League, 6 Conference League, 16th relegation play-off, 17–18 relegation. UCL league phase: 1–8 Round of 16, 9–24 knockout play-off, 25–36 eliminated.
+- **D88. Each zone row has a light tint plus a solid 3-pt bar on its left edge.** When a row is highlighted, the blue replaces the tint but the bar stays, so you can still see the zone. Shades get darker the better the outcome: dark green Champions League / Round of 16, mid green Europa League / play-off, yellow-green Conference League, orange relegation play-off, red relegation / eliminated.
+- **D89. The key lists only the zones that table has**, in two columns under the table.

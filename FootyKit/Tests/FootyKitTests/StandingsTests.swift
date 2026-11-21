@@ -118,3 +118,26 @@ struct TeamResultsTests {
         #expect(TeamResults.outcome(of: fixture, for: 1) == .loss)
     }
 }
+
+struct TableZoneTests {
+    @Test func bundledZones() throws {
+        let config = AppConfig.bundled()
+        let pl = try #require(config.competition(id: "PL"))
+        #expect(pl.zone(forPosition: 1) == .championsLeague)
+        #expect(pl.zone(forPosition: 5) == .europaLeague)
+        #expect(pl.zone(forPosition: 10) == nil)
+        #expect(pl.zone(forPosition: 20) == .relegation)
+        let bundesliga = try #require(config.competition(id: "BUNDESLIGA"))
+        #expect(bundesliga.zone(forPosition: 16) == .relegationPlayoff)
+        let ucl = try #require(config.competition(id: "UCL"))
+        #expect(ucl.zone(forPosition: 8) == .knockouts)
+        #expect(ucl.zone(forPosition: 9) == .knockoutPlayoff)
+        #expect(ucl.zone(forPosition: 25) == .eliminated)
+        // Every zone sits inside a plausible table and doesn't overlap another.
+        for competition in config.competitions {
+            let zones = (competition.tableZones ?? []).sorted { $0.from < $1.from }
+            for (a, b) in zip(zones, zones.dropFirst()) { #expect(a.to < b.from, "\(competition.id)") }
+            #expect(zones.allSatisfy { $0.from >= 1 && $0.from <= $0.to }, "\(competition.id)")
+        }
+    }
+}

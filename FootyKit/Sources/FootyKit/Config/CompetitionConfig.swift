@@ -109,6 +109,13 @@ public struct CompetitionConfig: Codable, Sendable, Hashable, Identifiable {
     public var tiebreak: TiebreakRule?
     public var isCup: Bool?
     public var sources: [SourceConfig]
+    /// Table positions that lead somewhere (Europe, knockouts, promotion, relegation), by standard allocation.
+    public var tableZones: [TableZone]?
+
+    /// The zone a table position falls in, if any.
+    public func zone(forPosition position: Int) -> TableZoneKind? {
+        tableZones?.first { (($0.from)...($0.to)).contains(position) }?.kind
+    }
 
     public var effectiveRoundStyle: RoundStyle { roundStyle ?? .league }
     public var cup: Bool { isCup ?? false }
@@ -123,5 +130,57 @@ public struct CompetitionConfig: Codable, Sendable, Hashable, Identifiable {
         guard channels.count > 1 else { return [] }
         let ordered = channels.map { first in [first] + channels.filter { $0 != first } }
         return ordered + channels.map { [$0] }
+    }
+}
+
+/// A run of table positions with the same outcome (e.g. 1–4: Champions League).
+public struct TableZone: Codable, Sendable, Hashable {
+    public var from: Int
+    public var to: Int
+    public var kind: TableZoneKind
+
+    public init(from: Int, to: Int, kind: TableZoneKind) {
+        self.from = from
+        self.to = to
+        self.kind = kind
+    }
+}
+
+/// What a table position leads to. Good outcomes are shown in greens, bad ones in reds.
+public enum TableZoneKind: String, Codable, Sendable, Hashable, CaseIterable {
+    case championsLeague
+    case championsLeagueQualifying
+    case europaLeague
+    case conferenceLeague
+    case knockouts
+    case knockoutPlayoff
+    case promotion
+    case promotionPlayoff
+    case relegationPlayoff
+    case relegation
+    case eliminated
+
+    public var label: String {
+        switch self {
+        case .championsLeague: "Champions League"
+        case .championsLeagueQualifying: "Champions League qualifying"
+        case .europaLeague: "Europa League"
+        case .conferenceLeague: "Conference League"
+        case .knockouts: "Round of 16"
+        case .knockoutPlayoff: "Knockout play-off"
+        case .promotion: "Promotion"
+        case .promotionPlayoff: "Promotion play-off"
+        case .relegationPlayoff: "Relegation play-off"
+        case .relegation: "Relegation"
+        case .eliminated: "Eliminated"
+        }
+    }
+
+    /// Green (good) or red (bad).
+    public var isPositive: Bool {
+        switch self {
+        case .relegationPlayoff, .relegation, .eliminated: false
+        default: true
+        }
     }
 }

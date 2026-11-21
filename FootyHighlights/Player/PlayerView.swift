@@ -7,7 +7,15 @@ import WebKit
     struct PlayerWebViewRepresentable: NSViewRepresentable {
         let controller: PlayerController
 
+        #if DEBUG
+            /// `--fullscreen-test`: how many times a player view was (re)created.
+            nonisolated(unsafe) static var makeCount = 0
+        #endif
+
         func makeNSView(context: Context) -> NSView {
+            #if DEBUG
+                Self.makeCount += 1
+            #endif
             let container = NSView()
             adopt(into: container)
             return container
@@ -16,17 +24,16 @@ import WebKit
         /// Never takes the web view back on update: a screen that's on its way out would steal it from the new one.
         func updateNSView(_ container: NSView, context: Context) {}
 
+        /// Sized with autoresizing (not constraints): WebKit's full screen moves the web view into its own window
+        /// and back, and only follows the window's size when the view uses autoresizing. With constraints, full
+        /// screen could show a black picture while the audio kept playing.
         private func adopt(into container: NSView) {
             let webView = controller.webView
             webView.removeFromSuperview()
-            webView.translatesAutoresizingMaskIntoConstraints = false
+            webView.translatesAutoresizingMaskIntoConstraints = true
+            webView.frame = container.bounds
+            webView.autoresizingMask = [.width, .height]
             container.addSubview(webView)
-            NSLayoutConstraint.activate([
-                webView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                webView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-                webView.topAnchor.constraint(equalTo: container.topAnchor),
-                webView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            ])
         }
     }
 #else
